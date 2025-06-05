@@ -13,6 +13,10 @@ class Cercle:
         self.end_angle = math.radians(end_deg)
         self.active = True
         self.color = color
+        self.dying = False
+        self.death_timer = 0
+        self.shards = []
+
 
         if rotate == "free":
             self.rotation_speed = random.uniform(0.005, 0.02)
@@ -54,9 +58,10 @@ class Cercle:
                     in_hole = angle >= start_deg or angle <= end_deg
 
                 if in_hole:
-                    self.active = False
                     ball.score += 1
+                    self.start_death()  # <- ici
                     return True
+
                 else:
                     normal = direction / distance
                     ball.velocity = ball.velocity - 2 * np.dot(ball.velocity, normal) * normal
@@ -127,14 +132,51 @@ class Cercle:
 
         return False
 
+    def start_death(self):
+        self.active = False
+        self.dying = True
+        self.death_timer = 0
+        self.shards = []
+        for _ in range(10):
+            angle = math.radians(random.uniform(0, 360))
+            speed = random.uniform(3, 6)
+            self.shards.append({
+                "angle": angle,
+                "speed": speed,
+                "length": random.randint(20, 40),
+                "alpha": 255
+            })
+
+    def update_mort(self):
+        if self.dying:
+            self.death_timer += 1
+            if self.death_timer > 30:
+                return False  # prêt à être supprimé
+        return True
+
 
             
 
     def draw(self, screen):
-        if self.close:
+        if self.dying:
+            center = (540, 960)
+            for shard in self.shards:
+                angle = shard["angle"]
+                dist = self.death_timer * shard["speed"]
+                length = shard["length"]
+                alpha = max(0, 255 - self.death_timer * 10)
+
+                x1 = center[0] + math.cos(angle) * dist
+                y1 = center[1] + math.sin(angle) * dist
+                x2 = center[0] + math.cos(angle) * (dist + length)
+                y2 = center[1] + math.sin(angle) * (dist + length)
+
+                color = (*self.color[:3], alpha)
+                pygame.draw.line(screen, color, (x1, y1), (x2, y2), 2)
+
+        elif self.close:
             pygame.draw.circle(screen, self.color, (540, 960), self.rayon, 3)
-            
+
         elif self.active:
             rect = pygame.Rect(550 - self.rayon, 960 - self.rayon, 2 * self.rayon, 2 * self.rayon)
-            pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle,3)
-        
+            pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 3)

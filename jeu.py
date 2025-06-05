@@ -19,19 +19,19 @@ pygame.mixer.set_num_channels(32)
 
 note_sounds = load_note_sounds()
 
-pygame.mixer.music.load("music/bg7.mp3")
-pygame.mixer.music.set_volume(0.6)
+pygame.mixer.music.load("music/bg9.mp3")
+pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
 
 # 🔊 Chargement d’une piste audio secondaire
-ambient_sound = pygame.mixer.Sound("music/audio2.wav")  # ou .ogg
+ambient_sound = pygame.mixer.Sound("music/audio6.wav")  # ou .ogg
 ambient_sound.set_volume(1.0)  # plus fort que la musique
 ambient_sound.play()
 
 
 
 screen = pygame.display.set_mode((1080, 1920), pygame.FULLSCREEN | pygame.SCALED | pygame.DOUBLEBUF)
-hidden_image = pygame.image.load("images/logo.png").convert()
+hidden_image = pygame.image.load("images/rainbow.png").convert()
 hidden_image = pygame.transform.scale(hidden_image, (600, 600))  # ou autre taille
 image_rect = hidden_image.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
 
@@ -42,9 +42,9 @@ clock = pygame.time.Clock()
 
 os.makedirs("frames", exist_ok=True)
 
-ball1 = Balle((0, 255, 170  ), (0, 0, 0), note_sounds, image_path=None, hidden_image=hidden_image, image_rect=image_rect)
+ball1 = Balle(( 0, 255, 135 ), (0, 0, 0), note_sounds, image_path=None, hidden_image=hidden_image, image_rect=image_rect)
 
-#ball2 = Balle((  0, 236, 255  ), (0, 0, 0), note_sounds, image_path=None)
+#ball2 = Balle((  255, 0, 143  ), (0, 0, 0), note_sounds, image_path=None)
 
 
 balles = [ball1]
@@ -68,7 +68,7 @@ if os.path.exists("images/yes.png") and os.path.exists("images/no.png"):
 cercles = []
 min_radius = 80
 spacing = 10  # Espace entre les cercles
-colorTheme = "simpleCercle"  # "unicolor" ou "multicolor"
+colorTheme = "unicolor"  # "unicolor" ou "multicolor"
 
 def generate_circle_colors(n):
     colors = []
@@ -85,7 +85,7 @@ if colorTheme == "unicolor":
         if 2 * radius < min(screen.get_width(), screen.get_height()):
             start_deg = (i * 5) % 360  # Décalage progressif
             end_deg = (start_deg + 20) % 360
-            cercles.append(Cercle(radius, start_deg, end_deg, color=(  201, 0, 255  )))
+            cercles.append(Cercle(radius, start_deg, end_deg, color=( 255, 93, 0 )))
 
 if colorTheme == "multicolor":
     colors = generate_circle_colors(60)
@@ -103,7 +103,7 @@ if colorTheme == "simpleCercle":
     if 2 * radius < min(screen.get_width(), screen.get_height()):
         start_deg = 335
         end_deg = 360
-        cercles.append(Cercle(radius, start_deg, end_deg, color=(220, 0, 255)))
+        cercles.append(Cercle(radius, start_deg, end_deg, color=( 255, 0, 139  )))
 
 if colorTheme == "simpleCercleferme":
     radius = 500
@@ -136,10 +136,10 @@ if colorTheme == "infini":
 TOTAL_FRAMES = 60 * 85
 frame_count = 0
 running = True
-mode = "simple"  # "double", "multi", "simple", "infini", "cercleferme"
+mode = "multi"  # "double", "multi", "simple", "infini", "cercleferme"
 countdown_start = time.time()
 countdown_duration = 70 
-theme = "simpleCercle"  # "classique" ou "simpleCercle"
+theme = "classique"  # "classique" ou "simpleCercle"
 nbBalles = 1  # une balle au départ
 
 while running:
@@ -150,17 +150,17 @@ while running:
     spacing = 200  # espace horizontal entre les scores (ajuste cette valeur)
     y_position = 300  # position verticale
     if mode != "infini" and mode != "cercleferme":
-        text = "Take the time to listen this \n Don't hesitate to share it"
+        text = "What is the message behind ? \n Give me your guess !"
         lines = text.split('\n')
         for i, line in enumerate(lines):
-            rendered = font.render(line, True, ( 220, 0, 255 ))
+            rendered = font.render(line, True, ( 70, 0, 255  ))
             rect = rendered.get_rect(center=(screen.get_width() // 2, y_position - 100 + i * font.get_height()))
             screen.blit(rendered, rect)
 
         textBelow = "What do you think ? \n Share it with your friends"
         linesBelow = textBelow.split('\n')
         for i, line in enumerate(linesBelow):
-            rendered = font.render(line, True, ( 0, 255, 170 ))
+            rendered = font.render(line, True, ( 70, 0, 255  ))
             rect = rendered.get_rect(center=(screen.get_width() // 2, y_position + 1400 + i * font.get_height()))
             screen.blit(rendered, rect)
 
@@ -243,6 +243,9 @@ while running:
     # Met à jour chaque cercle
     for c in cercles:
         c.update_angles()
+
+    # Supprime les cercles qui sont "morts"
+    cercles = [c for c in cercles if c.update_mort()]
 
     # Met à jour la ball1e
     for b in balles:

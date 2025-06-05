@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 
-mode = "trainee"
+mode = "invisible"  # Modes possibles : "invisible", "trainee", "trace"
 
 
 class Balle:
@@ -17,7 +17,7 @@ class Balle:
 
         self.position = np.array([540.0, 600.0])
         self.velocity = np.array([random.uniform(-5, 5), 0.0])
-        self.radius = 20
+        self.radius = 10
         self.score = 0
         self.color = color
         self.colorIn = colorIn
@@ -38,7 +38,7 @@ class Balle:
             self.image = None
 
     def update(self):
-        self.velocity[1] += 0.15  # Gravité
+        self.velocity[1] += 0.2  # Gravité
         self.position += self.velocity
         if mode == "trainee":
             self.trail.append(self.position.copy())

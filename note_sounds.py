@@ -8,6 +8,6 @@ def load_note_sounds():
 
     for i, name in enumerate(note_names):
         note_map[base_midi + i] = pygame.mixer.Sound(f"sounds/{name}.wav")
-        note_map[base_midi + i].set_volume(0.5)
+        note_map[base_midi + i].set_volume(0.4)
 
     return note_map
