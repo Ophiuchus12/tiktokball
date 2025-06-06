@@ -19,19 +19,19 @@ pygame.mixer.set_num_channels(32)
 
 note_sounds = load_note_sounds()
 
-pygame.mixer.music.load("music/bg9.mp3")
+pygame.mixer.music.load("music/bg10.mp3")
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
 
 # 🔊 Chargement d’une piste audio secondaire
-ambient_sound = pygame.mixer.Sound("music/audio6.wav")  # ou .ogg
+ambient_sound = pygame.mixer.Sound("music/audio8.wav")  # ou .ogg
 ambient_sound.set_volume(1.0)  # plus fort que la musique
 ambient_sound.play()
 
 
 
 screen = pygame.display.set_mode((1080, 1920), pygame.FULLSCREEN | pygame.SCALED | pygame.DOUBLEBUF)
-hidden_image = pygame.image.load("images/rainbow.png").convert()
+hidden_image = pygame.image.load("images/rainbow.jpg").convert()
 hidden_image = pygame.transform.scale(hidden_image, (600, 600))  # ou autre taille
 image_rect = hidden_image.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
 
@@ -42,7 +42,7 @@ clock = pygame.time.Clock()
 
 os.makedirs("frames", exist_ok=True)
 
-ball1 = Balle(( 0, 255, 135 ), (0, 0, 0), note_sounds, image_path=None, hidden_image=hidden_image, image_rect=image_rect)
+ball1 = Balle(( 0, 0, 0 ), (0, 0, 0), note_sounds, image_path=None, hidden_image=hidden_image, image_rect=image_rect)
 
 #ball2 = Balle((  255, 0, 143  ), (0, 0, 0), note_sounds, image_path=None)
 
@@ -67,8 +67,8 @@ if os.path.exists("images/yes.png") and os.path.exists("images/no.png"):
 # Plusieurs cercles concentriques
 cercles = []
 min_radius = 80
-spacing = 10  # Espace entre les cercles
-colorTheme = "unicolor"  # "unicolor" ou "multicolor"
+spacing = 15  # Espace entre les cercles
+colorTheme = "simpleCercle"  # "unicolor" ou "multicolor"
 
 def generate_circle_colors(n):
     colors = []
@@ -85,7 +85,7 @@ if colorTheme == "unicolor":
         if 2 * radius < min(screen.get_width(), screen.get_height()):
             start_deg = (i * 5) % 360  # Décalage progressif
             end_deg = (start_deg + 20) % 360
-            cercles.append(Cercle(radius, start_deg, end_deg, color=( 255, 93, 0 )))
+            cercles.append(Cercle(radius, start_deg, end_deg, color=(  160, 158, 158 )))
 
 if colorTheme == "multicolor":
     colors = generate_circle_colors(60)
@@ -136,10 +136,10 @@ if colorTheme == "infini":
 TOTAL_FRAMES = 60 * 85
 frame_count = 0
 running = True
-mode = "multi"  # "double", "multi", "simple", "infini", "cercleferme"
+mode = "simple"  # "double", "multi", "simple", "infini", "cercleferme"
 countdown_start = time.time()
 countdown_duration = 70 
-theme = "classique"  # "classique" ou "simpleCercle"
+theme = "simpleCercle"  # "classique" ou "simpleCercle"
 nbBalles = 1  # une balle au départ
 
 while running:
@@ -150,7 +150,7 @@ while running:
     spacing = 200  # espace horizontal entre les scores (ajuste cette valeur)
     y_position = 300  # position verticale
     if mode != "infini" and mode != "cercleferme":
-        text = "What is the message behind ? \n Give me your guess !"
+        text = "Listen and tell me what you think ! \n"
         lines = text.split('\n')
         for i, line in enumerate(lines):
             rendered = font.render(line, True, ( 70, 0, 255  ))
@@ -199,7 +199,7 @@ while running:
 
     if mode == "simple":
         balle = balles[0]
-        score_text = font.render(f"Score: {nbBalles}", True, balle.color)
+        score_text = font.render(f"Score: {nbBalles}", True, (  255, 151, 0 ))
         text_rect = score_text.get_rect(center=(screen.get_width() // 2, y_position))
         screen.blit(score_text, text_rect)
 
@@ -221,7 +221,7 @@ while running:
         passed_rect = passed_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
         screen.blit(passed_text, passed_rect)
     
-    if mode =="cercleferme":
+    if mode =="simpleCercleferme":
         elapsed = time.time() - countdown_start
         remaining = max(0, countdown_duration - int(elapsed))  # jamais négatif
         minutes = remaining // 60
@@ -277,8 +277,8 @@ while running:
         for c in cercles:
             for b in balles:
                 passed = c.check_collision_simple(b)
-                if passed and mode == "simple":
-                    balles_to_remove.append(b)
+                if passed and mode == "simple" and b.active:
+                    
                     
                     clone1 = b.clone()
                     
@@ -290,6 +290,13 @@ while running:
                     new_balles.append(clone2)
 
                     nbBalles += 1  # <- incrémente le score ici
+                    b.active = False  # désactive la balle originale
+
+                if (
+                    b.position[0] < 0 or b.position[0] > screen.get_width() or
+                    b.position[1] < 0 or b.position[1] > screen.get_height()
+                ):
+                    balles_to_remove.append(b) 
 
         for b in balles_to_remove:
             if b in balles:

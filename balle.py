@@ -13,11 +13,11 @@ mode = "invisible"  # Modes possibles : "invisible", "trainee", "trace"
 class Balle:
 
     
-    def __init__(self, color, colorIn, note_sounds, image_path=None, hidden_image=None, image_rect=None):
+    def __init__(self, color, colorIn, note_sounds, image_path=None, hidden_image=None, image_rect=None, position=None, velocity=None):
 
-        self.position = np.array([540.0, 600.0])
-        self.velocity = np.array([random.uniform(-5, 5), 0.0])
-        self.radius = 10
+        self.position = np.array(position if position is not None else [540.0, 600.0], dtype=float)
+        self.velocity = np.array(velocity if velocity is not None else [random.uniform(-5, 5), 0.0], dtype=float)
+        self.radius = 5
         self.score = 0
         self.color = color
         self.colorIn = colorIn
@@ -27,6 +27,7 @@ class Balle:
         self.path = []
         self.hidden_image = hidden_image
         self.image_rect = image_rect
+        self.active = True
         
 
 

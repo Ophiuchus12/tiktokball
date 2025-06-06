@@ -3,7 +3,7 @@ import math
 import numpy as np
 import random
 
-rotate = "stuck"
+rotate = "free"
 
 
 class Cercle:
@@ -19,7 +19,7 @@ class Cercle:
 
 
         if rotate == "free":
-            self.rotation_speed = random.uniform(0.005, 0.02)
+            self.rotation_speed = random.uniform(0.005, 0.01)
             self.rotation_direction = random.choice([-1, 1])  # -1 : anti-horaire, 1 : horaire
         
         elif rotate == "stuck":
@@ -117,7 +117,7 @@ class Cercle:
 
         # Collision avec le bord intérieur du cercle
         if distance + ball.radius >= self.rayon:
-            if distance != 0:
+            if distance != 0 and ball.radius < self.rayon:
                 normal = direction / distance
                 ball.velocity = ball.velocity - 2 * np.dot(ball.velocity, normal) * normal
 
