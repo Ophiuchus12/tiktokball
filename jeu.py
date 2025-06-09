@@ -31,7 +31,7 @@ note_sounds = load_note_sounds()
 
 
 screen = pygame.display.set_mode((1080, 1920), pygame.FULLSCREEN | pygame.SCALED | pygame.DOUBLEBUF)
-hidden_image = pygame.image.load("images/troll.png").convert()
+hidden_image = pygame.image.load("images/fuck.png").convert()
 hidden_image = pygame.transform.scale(hidden_image, (600, 600))  # ou autre taille
 image_rect = hidden_image.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
 
@@ -51,16 +51,16 @@ vy = math.sin(angle) * vitesse
 
 
 #balle pour cercle ferme avec traits 
-ball1 = Balle((  176, 15, 241  ), ( 176, 15, 241 ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx, vy]))
-ball2 = Balle((  176, 15, 241  ), ( 176, 15, 241 ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx+5, vy+5]))
+# ball1 = Balle((  176, 15, 241  ), ( 255, 255, 255 ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx-8, vy-8]))
+# ball2 = Balle((  176, 15, 241  ), ( 255, 255, 255 ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx-5, vy-5]))
 
 
-#ball1 = Balle(( 234, 236, 238 ), (0, 0, 0), note_sounds, image_path=None, hidden_image=hidden_image, image_rect=image_rect)
+ball1 = Balle(( 234, 236, 238 ), (0, 0, 0), note_sounds, image_path=None, hidden_image=hidden_image, image_rect=image_rect, velocity= np.array([vx, vy]))
 
 #ball2 = Balle((  255, 0, 143  ), (0, 0, 0), note_sounds, image_path=None)
 
 
-balles = [ball1, ball2]
+balles = [ball1]
 
 # Avant la boucle principale
 logo1 = logo2 = None
@@ -80,8 +80,8 @@ if os.path.exists("images/yes.png") and os.path.exists("images/no.png"):
 # Plusieurs cercles concentriques
 cercles = []
 min_radius = 80
-spacing = 15  # Espace entre les cercles
-colorTheme = "simpleCercleferme"  # "unicolor" ou "multicolor"
+spacing = 20  # Espace entre les cercles
+colorTheme = "simpleCercle"  # "unicolor" ou "multicolor"
 
 def generate_circle_colors(n):
     colors = []
@@ -114,9 +114,9 @@ if colorTheme == "multicolor":
 if colorTheme == "simpleCercle":
     radius = 400
     if 2 * radius < min(screen.get_width(), screen.get_height()):
-        start_deg = 325
+        start_deg = 320
         end_deg = 360
-        cercles.append(Cercle(radius, start_deg, end_deg, color=(  245, 203, 167  )))
+        cercles.append(Cercle(radius, start_deg, end_deg, color=(248, 0, 154)))
 
 if colorTheme == "simpleCercleferme":
     radius = 500
@@ -144,6 +144,14 @@ if colorTheme == "infini":
     # Initialiser la première tranche affichée
     cercles = all_cercles[:DISPLAYED_CERCLES]
 
+if colorTheme == "multiCercleFerme":
+    for i in range(100):
+        radius = min_radius + i * spacing
+        if 2 * radius < min(screen.get_width(), screen.get_height()):
+            cercle = Cercle(radius, 0, 360, color=(  248, 0, 154  ))
+            cercle.close = True
+            cercles.append(cercle)
+
 
 
 TOTAL_FRAMES = 60 * 85
@@ -153,13 +161,13 @@ mode = "simple"  # "double", "multi", "simple", "infini", "simpleCercleferme"
 visu = "clean"  
 countdown_start = time.time()
 countdown_duration = 70 
-theme = "simpleCercleferme"  # "classique" ou "simpleCercle"
+theme = "simpleCercle"  # "classique" ou "simpleCercle"
 nbBalles = 1  # une balle au départ
 
 background_image = pygame.image.load("images/etoile.jpeg").convert()
 background_image = pygame.transform.scale(background_image, (screen.get_width(), screen.get_height()))
 
-capture_image = pygame.image.load("images/response2.png").convert_alpha()
+capture_image = pygame.image.load("images/losetime.png").convert_alpha()
 # Optionnel : redimensionne si besoin, par exemple largeur max 500 px
 max_width = 500
 if capture_image.get_width() > max_width:
@@ -178,24 +186,24 @@ while running:
 
         # Positionner la capture horizontale centrée en X, et juste au-dessus du cercle
         circle_image_x = screen.get_width() // 2 - (capture_image.get_width()/2)
-        circle_image_y =  y_position - 30  # à ajuster selon ton cercle
+        circle_image_y =  y_position + 20  # à ajuster selon ton cercle
 
 
         screen.blit(capture_image, (circle_image_x, circle_image_y))
 
-        text = "Give me your idea of what you want  \n \n to see and I will implement it 💪​ \n "
+        text = "Behind is my message to the people \n \n who say you're wasting your time 😒​​ \n "
         lines = text.split('\n')
         
 
         for i, line in enumerate(lines):
-            rendered = font.render(line, True, (  241, 15, 238 ))
+            rendered = font.render(line, True, ( 255, 0, 0 ))
             rect = rendered.get_rect(center=(screen.get_width() // 2, y_position - 200 + i * font.get_height()))
             screen.blit(rendered, rect)
 
-        textBelow = "Like, subscribe and comment below 🔥​\n to be selected for the next video 😁​ \n "
+        textBelow = "Don't give up, we'll show them 😈​​\n  "
         linesBelow = textBelow.split('\n')
         for i, line in enumerate(linesBelow):
-            rendered = font.render(line, True, ( 241, 15, 155 ))
+            rendered = font.render(line, True, ( 255, 0, 0 ))
             rect = rendered.get_rect(center=(screen.get_width() // 2, y_position + 1400 + i * font.get_height()))
             screen.blit(rendered, rect)
 
@@ -396,8 +404,11 @@ while running:
             cercles.sort(key=lambda c: c.rayon)
 
 
-
-        
+    if theme == "multiCercleFerme":
+        for c in cercles:
+            for b in balles:
+                b.gravity_enabled = False
+                c.close_cercles_break(b)
 
     # Dessine tout
     for c in cercles:

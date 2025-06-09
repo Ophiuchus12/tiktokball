@@ -4,7 +4,8 @@ import numpy as np
 import random
 
 rotate = "free"
-onBounce = "linked"  # "linked" ou "none"
+onBounce = "none"  # "linked" ou "none"
+look = "none"
 
 def reflect(velocity, normal):
         # R = V - 2 * (V • N) * N
@@ -172,6 +173,25 @@ class Cercle:
                 ball.on_bounce()
 
         return False
+    
+
+    def close_cercles_break(self, ball):
+        if not self.active:
+            return False
+
+        center = np.array([540.0, 960.0])
+        direction = ball.position - center
+        distance = np.linalg.norm(direction)
+
+        if distance + ball.radius >= self.rayon:
+            if distance != 0 and ball.radius < self.rayon:
+                normal = direction / distance  # Normalisée
+                ball.velocity = reflect(ball.velocity, normal)
+                ball.on_bounce()
+        
+        return False
+
+
 
     def start_death(self):
         self.active = False
@@ -218,8 +238,18 @@ class Cercle:
                 pygame.draw.line(screen, color, (x1, y1), (x2, y2), 5)
 
         elif self.close:
-            pygame.draw.circle(screen, self.color, (540, 960), self.rayon, 10)
+            if look == "sabre":
+                bright_color = tuple(min(255, int(c * 1.5)) for c in self.color[:3])
+                pygame.draw.circle(screen, bright_color, (540, 960), self.rayon, 10)
+            else:
+                pygame.draw.circle(screen, self.color, (540, 960), self.rayon, 10)
 
         elif self.active:
             rect = pygame.Rect(550 - self.rayon, 960 - self.rayon, 2 * self.rayon, 2 * self.rayon)
-            pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 6)
+
+            if look == "sabre":
+                bright_color = tuple(min(255, int(c * 1.5)) for c in self.color[:3])
+                pygame.draw.arc(screen, bright_color, rect, self.end_angle, self.start_angle, 6)
+
+            else:
+                pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 6)

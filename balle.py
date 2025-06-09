@@ -17,7 +17,8 @@ def rotate_point_around_center(point, center, angle_rad):
 
 
 mode = "invisible"  # Modes possibles : "invisible", "trainee", "trace"
-onBounce = "linked" #linked , #none
+onBounce = "none" #linked , #none
+look = "sabre"
 
 class Balle:
 
@@ -26,7 +27,7 @@ class Balle:
 
         self.position = np.array(position if position is not None else [540.0, 600.0], dtype=float)
         self.velocity = np.array(velocity if velocity is not None else [random.uniform(-5, 5), 0.0], dtype=float)
-        self.radius = 8
+        self.radius = 20
         self.score = 0
         self.color = color
         self.colorIn = colorIn
@@ -139,14 +140,34 @@ class Balle:
                     pygame.draw.circle(s, trail_color, (radius, radius), radius)
                     screen.blit(s, (int(pos[0]) - radius, int(pos[1]) - radius))
 
+            if look == "sabre":
+                # 🌟 Halo néon intense
+                for i in range(6, 0, -1):
+                    alpha = int(255 * (0.05 + 0.1 * i))  # Opacité plus forte
+                    radius = self.radius + i * 2
+                    glow_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+                    glow_color = (*self.color, min(alpha, 255))
+                    pygame.draw.circle(glow_surface, glow_color, (radius, radius), radius)
+                    screen.blit(glow_surface, (int_pos[0] - radius, int_pos[1] - radius), special_flags=pygame.BLEND_ADD)
 
-            # Dessin complet de la balle normale
-            pygame.draw.circle(screen, self.color, int_pos, self.radius + 2)
-            if self.image:
-                rect = self.image.get_rect(center=int_pos)
-                screen.blit(self.image, rect)
+
+                # 🟢 Balle centrale
+                pygame.draw.circle(screen, self.color, int_pos, self.radius + 2)
+                if self.image:
+                    rect = self.image.get_rect(center=int_pos)
+                    screen.blit(self.image, rect)
+                else:
+                    pygame.draw.circle(screen, self.colorIn, int_pos, self.radius)
+
             else:
-                pygame.draw.circle(screen, self.colorIn, int_pos, self.radius)
+                # Dessin complet de la balle normale
+                pygame.draw.circle(screen, self.color, int_pos, self.radius + 2)
+                if self.image:
+                    rect = self.image.get_rect(center=int_pos)
+                    screen.blit(self.image, rect)
+                else:
+                    pygame.draw.circle(screen, self.colorIn, int_pos, self.radius)
+
 
         if onBounce == "linked":
             center = np.array([540.0, 960.0])
