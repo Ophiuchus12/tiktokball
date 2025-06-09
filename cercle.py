@@ -4,7 +4,16 @@ import numpy as np
 import random
 
 rotate = "free"
+onBounce = "linked"  # "linked" ou "none"
 
+def reflect(velocity, normal):
+        # R = V - 2 * (V • N) * N
+        dot = velocity[0]*normal[0] + velocity[1]*normal[1]
+        reflected = (
+            velocity[0] - 2 * dot * normal[0],
+            velocity[1] - 2 * dot * normal[1]
+        )
+        return reflected
 
 class Cercle:
     def __init__(self, rayon, start_deg, end_deg, color=(255, 255, 255), index=0):
@@ -126,9 +135,41 @@ class Cercle:
                 ball.position -= normal * overlap
 
                 ball.on_bounce()
-                
-                ball.radius += 2
 
+                
+                # Ajuster la position du dernier segment pour qu'il soit sur la surface
+                if onBounce == "linked" and len(ball.rebonds_segments) > 1:
+                    last_segment = ball.rebonds_segments[-1]
+                    seg_dir = last_segment[0] - center
+                    seg_dist = np.linalg.norm(seg_dir)
+                    if seg_dist != 0:
+                        seg_dir /= seg_dist
+                        # distance entre centre du cercle et centre de la balle
+                        dist_center_to_ball = np.linalg.norm(ball.position - center)
+                        # position du point sur la surface de la balle
+                        last_segment[0] = center + seg_dir * (dist_center_to_ball + ball.radius)
+
+                ball.radius += 4
+
+
+
+        return False
+    
+    
+    
+    def close_cercle_nogravity(self, ball):
+        if not self.active:
+            return False
+
+        center = np.array([540.0, 960.0])
+        direction = ball.position - center
+        distance = np.linalg.norm(direction)
+
+        if distance + ball.radius >= self.rayon:
+            if distance != 0 and ball.radius < self.rayon:
+                normal = direction / distance  # Normalisée
+                ball.velocity = reflect(ball.velocity, normal)
+                ball.on_bounce()
 
         return False
 
@@ -155,6 +196,8 @@ class Cercle:
         return True
 
 
+    
+
             
 
     def draw(self, screen):
@@ -172,11 +215,11 @@ class Cercle:
                 y2 = center[1] + math.sin(angle) * (dist + length)
 
                 color = (*self.color[:3], alpha)
-                pygame.draw.line(screen, color, (x1, y1), (x2, y2), 2)
+                pygame.draw.line(screen, color, (x1, y1), (x2, y2), 5)
 
         elif self.close:
-            pygame.draw.circle(screen, self.color, (540, 960), self.rayon, 3)
+            pygame.draw.circle(screen, self.color, (540, 960), self.rayon, 10)
 
         elif self.active:
             rect = pygame.Rect(550 - self.rayon, 960 - self.rayon, 2 * self.rayon, 2 * self.rayon)
-            pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 3)
+            pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 6)

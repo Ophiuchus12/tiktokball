@@ -1,68 +1,74 @@
 import pygame
-import math
 import numpy as np
+import math
 import random
 
-class Carre :
+class Carre:
     def __init__(self, size, color=(255, 255, 255), index=0):
         self.size = size
         self.position = np.array([540.0, 960.0], dtype=float)
         self.color = color
         self.active = True
-        self.dying = False
-        self.death_timer = 0
-        self.shards = []
-        self.index = index  # Nouvel attribut pour l'index du carré
-        self.base_angle = math.radians(270)  # Angle moyen (en bas)
-        self.amplitude = math.radians(20)    # +/-10° de part et d’autre
-        self.oscillation_speed = 0.05        # Vitesse d’oscillation
-        self.oscillation_phase = 0           # Phase de l’oscillation
-        self.hole_width = math.radians(20)   # Taille de l’ouverture
- 
+        self.index = index
+        self.rotation_speed = random.uniform(0.01, 0.03)
+        self.rotation_direction = random.choice([-1, 1])
+
+        # Segment bas seulement
+        self.opening_center = 0.0  # De -1 à 1 (pourcentage d'oscillation)
+        self.opening_width = 0.4   # Pourcentage de largeur (ex: 40%)
+
+    def update_angles(self):
+        self.opening_center += self.rotation_speed * self.rotation_direction
+        if abs(self.opening_center) > 0.6:
+            self.rotation_direction *= -1
 
     def check_collision(self, ball):
         if not self.active:
-            return
+            return False
 
-        center = np.array([540.0, 960.0])
-        direction = ball.position - center
-        distance = np.linalg.norm(direction)
+        x, y = ball.position
+        cx, cy = self.position
+        half = self.size / 2
+        r = ball.radius
 
-        if distance + ball.radius >= self.size / 2:
-            if distance != 0:
-                angle = math.degrees(math.atan2(-direction[1], direction[0])) % 360
-                start_deg = math.degrees(self.start_angle) % 360
-                end_deg = math.degrees(self.end_angle) % 360
+        # Détection si balle touche le bord bas
+        if (cy + half - r <= y <= cy + half + r) and (cx - half <= x <= cx + half):
+            # Coordonnée X relative (0 à 1)
+            relative_x = (x - (cx - half)) / self.size
 
-                in_hole = False
-                if start_deg < end_deg:
-                    in_hole = start_deg <= angle <= end_deg
-                else:
-                    in_hole = angle >= start_deg or angle <= end_deg
+            # Définir ouverture dynamique
+            open_start = 0.5 + self.opening_center - self.opening_width / 2
+            open_end = 0.5 + self.opening_center + self.opening_width / 2
 
-                if in_hole:
-                    ball.score += 1
-                    return True
+            if open_start <= relative_x <= open_end:
+                ball.score += 1
+                return True
+            else:
+                # Rebonds sur bas
+                ball.velocity[1] *= -1
+                ball.on_bounce()
+                return False
 
-                else:
-                    normal = direction / distance
-                    ball.velocity = ball.velocity - 2 * np.dot(ball.velocity, normal) * normal
-                    overlap = (distance + ball.radius) - self.rayon
-                    ball.position -= normal * overlap
-                    ball.on_bounce()
-        return False  
-    
+        # Rebonds sur les autres côtés
+        if (cx - half - r <= x <= cx + half + r) and (cy - half <= y <= cy + half):
+            if x <= cx - half or x >= cx + half:
+                ball.velocity[0] *= -1
+                ball.on_bounce()
+        if (cy - half - r <= y <= cy + half + r) and (cx - half <= x <= cx + half):
+            if y <= cy - half:
+                ball.velocity[1] *= -1
+                ball.on_bounce()
+        return False
 
-    def update_angles(self):
-        self.oscillation_phase += self.oscillation_speed
-        angle_center = self.base_angle + math.sin(self.oscillation_phase) * self.amplitude
-        self.start_angle = angle_center - self.hole_width / 2
-        self.end_angle = angle_center + self.hole_width / 2
+    def draw(self, screen):
+        pos = self.position.astype(int)
+        rect = pygame.Rect(pos[0] - self.size // 2, pos[1] - self.size // 2, self.size, self.size)
 
+        pygame.draw.rect(screen, self.color, rect, 4)
 
-    def draw(self, screen): 
-        
+        # Dessine l’ouverture en bas
+        start_x = pos[0] - self.size // 2 + int((0.5 + self.opening_center - self.opening_width / 2) * self.size)
+        end_x = pos[0] - self.size // 2 + int((0.5 + self.opening_center + self.opening_width / 2) * self.size)
+        y = pos[1] + self.size // 2
 
-        int_pos = self.position.astype(int)
-        
-        pygame.draw.rect(screen, (0, 0, 0), (int_pos[0] - self.size // 2, int_pos[1] - self.size // 2, self.size, self.size), 1)
+        pygame.draw.line(screen, (0, 255, 0), (start_x, y), (end_x, y), 6)

@@ -4,11 +4,20 @@ import random
 import os
 import colorsys
 from concurrent.futures import ThreadPoolExecutor
+import math
 
+def rotate_point_around_center(point, center, angle_rad):
+    translated = point - center
+    cos_a, sin_a = np.cos(angle_rad), np.sin(angle_rad)
+    rotated = np.array([
+        translated[0] * cos_a - translated[1] * sin_a,
+        translated[0] * sin_a + translated[1] * cos_a
+    ])
+    return rotated + center
 
 
 mode = "invisible"  # Modes possibles : "invisible", "trainee", "trace"
-
+onBounce = "linked" #linked , #none
 
 class Balle:
 
@@ -17,7 +26,7 @@ class Balle:
 
         self.position = np.array(position if position is not None else [540.0, 600.0], dtype=float)
         self.velocity = np.array(velocity if velocity is not None else [random.uniform(-5, 5), 0.0], dtype=float)
-        self.radius = 5
+        self.radius = 8
         self.score = 0
         self.color = color
         self.colorIn = colorIn
@@ -28,6 +37,9 @@ class Balle:
         self.hidden_image = hidden_image
         self.image_rect = image_rect
         self.active = True
+        self.gravity_enabled = True
+        self.rebonds_segments= []
+        self.rotate_angle = 0.005  
         
 
 
@@ -39,7 +51,8 @@ class Balle:
             self.image = None
 
     def update(self):
-        self.velocity[1] += 0.2  # Gravité
+        if self.gravity_enabled:
+            self.velocity[1] += 0.2  # Gravité
         self.position += self.velocity
         if mode == "trainee":
             self.trail.append(self.position.copy())
@@ -47,6 +60,11 @@ class Balle:
                 self.trail.pop(0)
         if mode == "trace":        
             self.path.append((self.position.copy(), self.radius))
+
+        
+
+
+        
             
 
 
@@ -56,6 +74,20 @@ class Balle:
         if channel:
             channel.stop()
             note.play()
+        if onBounce == "linked":
+            center = np.array([540.0, 960.0])
+            direction = self.position - center
+            distance = np.linalg.norm(direction)
+            if distance != 0:
+                direction /= distance
+                # position sur la surface (bord) de la balle
+                point_on_surface = self.position + direction * self.radius
+                self.rebonds_segments.append([point_on_surface.copy(), self.position.copy()])
+            else:
+                # cas rare où la balle est exactement au centre
+                self.rebonds_segments.append([self.position.copy(), self.position.copy()])
+            
+
 
     def draw(self, screen):
         int_pos = self.position.astype(int)
@@ -84,7 +116,7 @@ class Balle:
             screen.blit(reveal_part, (self.position[0] - self.radius, self.position[1] - self.radius))
 
             # Dessine juste le contour, pas le centre
-            pygame.draw.circle(screen, self.color, int_pos, self.radius + 2, width=3)  # épaisseur 3
+            pygame.draw.circle(screen, self.color, int_pos, self.radius + 2, width=1)  # épaisseur 3
         else:
             # Modes normaux : trail ou trace
             if mode == "trainee":
@@ -107,6 +139,7 @@ class Balle:
                     pygame.draw.circle(s, trail_color, (radius, radius), radius)
                     screen.blit(s, (int(pos[0]) - radius, int(pos[1]) - radius))
 
+
             # Dessin complet de la balle normale
             pygame.draw.circle(screen, self.color, int_pos, self.radius + 2)
             if self.image:
@@ -114,6 +147,16 @@ class Balle:
                 screen.blit(self.image, rect)
             else:
                 pygame.draw.circle(screen, self.colorIn, int_pos, self.radius)
+
+        if onBounce == "linked":
+            center = np.array([540.0, 960.0])
+            for segment in self.rebonds_segments:
+                start = segment[0]
+                end = self.position  # toujours actuel
+                pygame.draw.line(screen, self.colorIn, start, end, 2)
+                start = segment[0]
+                rotated_start = rotate_point_around_center(start, center, self.rotate_angle)
+                segment[0] = rotated_start
 
 
     def clone(self):

@@ -19,35 +19,48 @@ pygame.mixer.set_num_channels(32)
 
 note_sounds = load_note_sounds()
 
-pygame.mixer.music.load("music/bg10.mp3")
-pygame.mixer.music.set_volume(0.5)
-pygame.mixer.music.play(-1)
+# pygame.mixer.music.load("music/background2.mp3")
+# pygame.mixer.music.set_volume(0.5)
+# pygame.mixer.music.play(-1)
 
 # 🔊 Chargement d’une piste audio secondaire
-ambient_sound = pygame.mixer.Sound("music/audio8.wav")  # ou .ogg
-ambient_sound.set_volume(1.0)  # plus fort que la musique
-ambient_sound.play()
+# ambient_sound = pygame.mixer.Sound("music/audio8.wav")  # ou .ogg
+# ambient_sound.set_volume(1.0)  # plus fort que la musique
+# ambient_sound.play()
 
 
 
 screen = pygame.display.set_mode((1080, 1920), pygame.FULLSCREEN | pygame.SCALED | pygame.DOUBLEBUF)
-hidden_image = pygame.image.load("images/rainbow.jpg").convert()
+hidden_image = pygame.image.load("images/troll.png").convert()
 hidden_image = pygame.transform.scale(hidden_image, (600, 600))  # ou autre taille
 image_rect = hidden_image.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
 
 pygame.display.set_caption("Multi Cercle Escape")
 pygame.font.init()
-font = pygame.font.SysFont(None, 60)
+font = pygame.font.Font("font/symbola/Symbola_hint.ttf", 60)
+
 clock = pygame.time.Clock()
 
 os.makedirs("frames", exist_ok=True)
 
-ball1 = Balle(( 0, 0, 0 ), (0, 0, 0), note_sounds, image_path=None, hidden_image=hidden_image, image_rect=image_rect)
+angle = math.radians(65)
+vitesse = 15
+
+vx = math.cos(angle) * vitesse
+vy = math.sin(angle) * vitesse
+
+
+#balle pour cercle ferme avec traits 
+ball1 = Balle((  176, 15, 241  ), ( 176, 15, 241 ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx, vy]))
+ball2 = Balle((  176, 15, 241  ), ( 176, 15, 241 ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx+5, vy+5]))
+
+
+#ball1 = Balle(( 234, 236, 238 ), (0, 0, 0), note_sounds, image_path=None, hidden_image=hidden_image, image_rect=image_rect)
 
 #ball2 = Balle((  255, 0, 143  ), (0, 0, 0), note_sounds, image_path=None)
 
 
-balles = [ball1]
+balles = [ball1, ball2]
 
 # Avant la boucle principale
 logo1 = logo2 = None
@@ -68,7 +81,7 @@ if os.path.exists("images/yes.png") and os.path.exists("images/no.png"):
 cercles = []
 min_radius = 80
 spacing = 15  # Espace entre les cercles
-colorTheme = "simpleCercle"  # "unicolor" ou "multicolor"
+colorTheme = "simpleCercleferme"  # "unicolor" ou "multicolor"
 
 def generate_circle_colors(n):
     colors = []
@@ -101,13 +114,13 @@ if colorTheme == "multicolor":
 if colorTheme == "simpleCercle":
     radius = 400
     if 2 * radius < min(screen.get_width(), screen.get_height()):
-        start_deg = 335
+        start_deg = 325
         end_deg = 360
-        cercles.append(Cercle(radius, start_deg, end_deg, color=( 255, 0, 139  )))
+        cercles.append(Cercle(radius, start_deg, end_deg, color=(  245, 203, 167  )))
 
 if colorTheme == "simpleCercleferme":
     radius = 500
-    cercle1 = Cercle(radius, 0, 360, color=(0, 0, 255))
+    cercle1 = Cercle(radius, 0, 360, color=( 217, 15, 241 ))
     cercle1.close = True
     cercles.append(cercle1)
 
@@ -136,31 +149,53 @@ if colorTheme == "infini":
 TOTAL_FRAMES = 60 * 85
 frame_count = 0
 running = True
-mode = "simple"  # "double", "multi", "simple", "infini", "cercleferme"
+mode = "simple"  # "double", "multi", "simple", "infini", "simpleCercleferme"
+visu = "clean"  
 countdown_start = time.time()
 countdown_duration = 70 
-theme = "simpleCercle"  # "classique" ou "simpleCercle"
+theme = "simpleCercleferme"  # "classique" ou "simpleCercle"
 nbBalles = 1  # une balle au départ
 
+background_image = pygame.image.load("images/etoile.jpeg").convert()
+background_image = pygame.transform.scale(background_image, (screen.get_width(), screen.get_height()))
+
+capture_image = pygame.image.load("images/response2.png").convert_alpha()
+# Optionnel : redimensionne si besoin, par exemple largeur max 500 px
+max_width = 500
+if capture_image.get_width() > max_width:
+    
+    capture_image = pygame.transform.smoothscale(capture_image, (800,125))
+
 while running:
-    screen.fill((0, 0, 0))
+    screen.blit(background_image, (0, 0))
+
 
 
 
     spacing = 200  # espace horizontal entre les scores (ajuste cette valeur)
     y_position = 300  # position verticale
-    if mode != "infini" and mode != "cercleferme":
-        text = "Listen and tell me what you think ! \n"
+    if mode != "infini" and mode != "simpleCercleferme":
+
+        # Positionner la capture horizontale centrée en X, et juste au-dessus du cercle
+        circle_image_x = screen.get_width() // 2 - (capture_image.get_width()/2)
+        circle_image_y =  y_position - 30  # à ajuster selon ton cercle
+
+
+        screen.blit(capture_image, (circle_image_x, circle_image_y))
+
+        text = "Give me your idea of what you want  \n \n to see and I will implement it 💪​ \n "
         lines = text.split('\n')
+        
+
         for i, line in enumerate(lines):
-            rendered = font.render(line, True, ( 70, 0, 255  ))
-            rect = rendered.get_rect(center=(screen.get_width() // 2, y_position - 100 + i * font.get_height()))
+            rendered = font.render(line, True, (  241, 15, 238 ))
+            rect = rendered.get_rect(center=(screen.get_width() // 2, y_position - 200 + i * font.get_height()))
             screen.blit(rendered, rect)
 
-        textBelow = "What do you think ? \n Share it with your friends"
+        textBelow = "Like, subscribe and comment below 🔥​\n to be selected for the next video 😁​ \n "
         linesBelow = textBelow.split('\n')
         for i, line in enumerate(linesBelow):
-            rendered = font.render(line, True, ( 70, 0, 255  ))
+            rendered = font.render(line, True, ( 241, 15, 155 ))
             rect = rendered.get_rect(center=(screen.get_width() // 2, y_position + 1400 + i * font.get_height()))
             screen.blit(rendered, rect)
 
@@ -198,20 +233,21 @@ while running:
         screen.blit(timer_text, timer_rect)
 
     if mode == "simple":
-        balle = balles[0]
-        score_text = font.render(f"Score: {nbBalles}", True, (  255, 151, 0 ))
-        text_rect = score_text.get_rect(center=(screen.get_width() // 2, y_position))
-        screen.blit(score_text, text_rect)
+        if visu != "clean":
+            balle = balles[0]
+            score_text = font.render(f"Score: {nbBalles}", True, ( 214, 234, 248  ))
+            text_rect = score_text.get_rect(center=(screen.get_width() // 2, y_position))
+            screen.blit(score_text, text_rect)
 
-        elapsed = time.time() - countdown_start
-        remaining = max(0, countdown_duration - int(elapsed))  # jamais négatif
-        minutes = remaining // 60
-        seconds = remaining % 60
-        timer_text_str = f"Timer: {minutes:02d}:{seconds:02d}"
+            elapsed = time.time() - countdown_start
+            remaining = max(0, countdown_duration - int(elapsed))  # jamais négatif
+            minutes = remaining // 60
+            seconds = remaining % 60
+            timer_text_str = f"Timer: {minutes:02d}:{seconds:02d}"
 
-        timer_text = font.render(timer_text_str, True, (  174, 180, 159 ))
-        timer_rect = timer_text.get_rect(center=(screen.get_width() // 2, y_position+50))
-        screen.blit(timer_text, timer_rect)
+            timer_text = font.render(timer_text_str, True, (  174, 180, 159 ))
+            timer_rect = timer_text.get_rect(center=(screen.get_width() // 2, y_position+50))
+            screen.blit(timer_text, timer_rect)
 
     if mode == "infini":
         shadow = font.render(f"{current_start_index}", True, (255,255,255))
@@ -269,6 +305,13 @@ while running:
         for c in cercles:
             for b in balles:
                 passed = c.close_cercle_collision(b)
+
+    if theme == "rebondInfini":
+        for c in cercles:
+            for b in balles:
+                b.gravity_enabled = False
+                c.close_cercle_nogravity(b)
+
 
 
     if theme == "simpleCercle":
