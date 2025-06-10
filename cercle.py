@@ -4,7 +4,7 @@ import numpy as np
 import random
 
 rotate = "free"
-onBounce = "none"  # "linked" ou "none"
+onBounce = "linked"  # "linked" ou "none"
 look = "none"
 
 def reflect(velocity, normal):
@@ -21,7 +21,7 @@ class Cercle:
         self.rayon = rayon
         self.start_angle = math.radians(start_deg)
         self.end_angle = math.radians(end_deg)
-        self.active = True
+        self.active = True   #cercle apparait
         self.color = color
         self.dying = False
         self.death_timer = 0
@@ -69,6 +69,10 @@ class Cercle:
 
                 if in_hole:
                     ball.score += 1
+                    if onBounce == "linked":
+                        ball.rebonds_segments.clear() 
+                        ball.velocity= np.array([5*ball.score, 5*ball.score])
+
                     self.start_death()  # <- ici
                     return True
 
@@ -88,34 +92,51 @@ class Cercle:
         direction = ball.position - center
         distance = np.linalg.norm(direction)
 
-        # Collision dès que le bord extérieur touche le cercle
-        if distance >= self.rayon - ball.radius:
-            if distance != 0:
-                angle = math.degrees(math.atan2(-direction[1], direction[0])) % 360
-                start_deg = math.degrees(self.start_angle) % 360
-                end_deg = math.degrees(self.end_angle) % 360
+        if distance == 0:
+            return False  # La balle est au centre : on ignore
 
-                # Vérifie si la balle passe dans l'ouverture
-                if start_deg < end_deg:
-                    in_hole = start_deg <= angle <= end_deg
-                else:
-                    in_hole = angle >= start_deg or angle <= end_deg
+        # Si la balle touche ou dépasse le bord
+        if distance + ball.radius >= self.rayon:
+            angle = math.degrees(math.atan2(-direction[1], direction[0])) % 360
+            start_deg = math.degrees(self.start_angle) % 360
+            end_deg = math.degrees(self.end_angle) % 360
 
-                if in_hole:
-                    ball.score += 1
-                    return True
-                else:
-                    # Rebond réaliste en fonction du bord
-                    normal = direction / distance
-                    ball.velocity = ball.velocity - 2 * np.dot(ball.velocity, normal) * normal
+            # Vérifie si la balle passe dans l'ouverture
+            if start_deg < end_deg:
+                in_hole = start_deg <= angle <= end_deg
+            else:
+                in_hole = angle >= start_deg or angle <= end_deg
 
-                    # Corriger le chevauchement pour éviter la pénétration visuelle
-                    overlap = self.rayon - (distance + ball.radius)
-                    if overlap < 0:
-                        ball.position += normal * overlap
+            if in_hole:
+                ball.score += 1
+                return True
+            else:
+                # Calcul du rebond
+                normal = direction / distance
 
-                    ball.on_bounce()
+                # Rebond : réflexion par rapport à la normale
+                ball.velocity = ball.velocity - 2 * np.dot(ball.velocity, normal) * normal
+
+                # ✅ Repositionne exactement sur la courbe
+                ball.position = center + normal * (self.rayon - ball.radius)
+
+                ball.on_bounce()
+
+                 # Ajuster la position du dernier segment pour qu'il soit sur la surface
+                if onBounce == "linked" and len(ball.rebonds_segments) > 1:
+                    last_segment = ball.rebonds_segments[-1]
+                    seg_dir = last_segment[0] - center
+                    seg_dist = np.linalg.norm(seg_dir)
+                    if seg_dist != 0:
+                        seg_dir /= seg_dist
+                        # distance entre centre du cercle et centre de la balle
+                        dist_center_to_ball = np.linalg.norm(ball.position - center)
+                        # position du point sur la surface de la balle
+                        last_segment[0] = center + seg_dir * (dist_center_to_ball + ball.radius)
+
         return False
+
+
     
     def close_cercle_collision(self, ball):
         if not self.active:
@@ -238,18 +259,8 @@ class Cercle:
                 pygame.draw.line(screen, color, (x1, y1), (x2, y2), 5)
 
         elif self.close:
-            if look == "sabre":
-                bright_color = tuple(min(255, int(c * 1.5)) for c in self.color[:3])
-                pygame.draw.circle(screen, bright_color, (540, 960), self.rayon, 10)
-            else:
-                pygame.draw.circle(screen, self.color, (540, 960), self.rayon, 10)
+            pygame.draw.circle(screen, self.color, (540, 960), self.rayon, 10)
 
         elif self.active:
-            rect = pygame.Rect(550 - self.rayon, 960 - self.rayon, 2 * self.rayon, 2 * self.rayon)
-
-            if look == "sabre":
-                bright_color = tuple(min(255, int(c * 1.5)) for c in self.color[:3])
-                pygame.draw.arc(screen, bright_color, rect, self.end_angle, self.start_angle, 6)
-
-            else:
-                pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 6)
+            rect = pygame.Rect(540 - self.rayon, 960 - self.rayon, 2 * self.rayon, 2 * self.rayon)
+            pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 6)
