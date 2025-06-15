@@ -3,8 +3,8 @@ import math
 import numpy as np
 import random
 
-rotate = "free"
-onBounce = "linked"  # "linked" ou "none"
+rotate = "stuck"
+onBounce = "cage"  # "linked" ou "none"
 look = "none"
 
 def reflect(velocity, normal):
@@ -17,7 +17,7 @@ def reflect(velocity, normal):
         return reflected
 
 class Cercle:
-    def __init__(self, rayon, start_deg, end_deg, color=(255, 255, 255), index=0):
+    def __init__(self, rayon, start_deg, end_deg, color=(255, 255, 255), index=0, cages=None):
         self.rayon = rayon
         self.start_angle = math.radians(start_deg)
         self.end_angle = math.radians(end_deg)
@@ -26,6 +26,7 @@ class Cercle:
         self.dying = False
         self.death_timer = 0
         self.shards = []
+        self.cages = cages if cages else {}
 
 
         if rotate == "free":
@@ -41,8 +42,21 @@ class Cercle:
 
     def update_angles(self):
         delta = self.rotation_speed * self.rotation_direction
+
+        # Tourne les angles en radians
         self.start_angle += delta
         self.end_angle += delta
+
+        # Fait tourner aussi les cages
+        if self.cages:
+            new_cages = {}
+            for index, (start_deg, end_deg) in self.cages.items():
+                start_deg = (start_deg + math.degrees(delta)) % 360
+                end_deg = (end_deg + math.degrees(delta)) % 360
+                new_cages[index] = (start_deg, end_deg)
+            self.cages = new_cages
+
+
 
     def update_radius(self, new_radius):
         self.rayon = new_radius
@@ -71,7 +85,7 @@ class Cercle:
                     ball.score += 1
                     if onBounce == "linked":
                         ball.rebonds_segments.clear() 
-                        ball.velocity= np.array([5*ball.score, 5*ball.score])
+                        ball.velocity= np.array([random.randint(8,15)*2, random.randint(8,15)*2])
 
                     self.start_death()  # <- ici
                     return True
@@ -171,7 +185,7 @@ class Cercle:
                         # position du point sur la surface de la balle
                         last_segment[0] = center + seg_dir * (dist_center_to_ball + ball.radius)
 
-                ball.radius += 4
+                #ball.radius += 2
 
 
 
@@ -211,6 +225,45 @@ class Cercle:
                 ball.on_bounce()
         
         return False
+    
+    def check_collision_cage(self, ball):
+        if not self.active:
+            return False, None
+
+        center = np.array([540.0, 960.0])
+        direction = ball.position - center
+        distance = np.linalg.norm(direction)
+
+        if distance + ball.radius >= self.rayon:
+            if distance != 0 and ball.radius < self.rayon:
+                normal = direction / distance
+                ball.velocity = ball.velocity - 2 * np.dot(ball.velocity, normal) * normal
+                overlap = (distance + ball.radius) - self.rayon
+                ball.position -= normal * overlap
+                ball.on_bounce()
+
+                if onBounce == "cage":
+                    # Convertir la position de la balle en angle (en radians)
+                    angle = math.atan2(-direction[1], direction[0]) % (2 * math.pi)
+
+                    for index, (start_deg, end_deg) in self.cages.items():
+                        if index in [1, 2]:  # cages rouges et vertes
+                            start_rad = math.radians(start_deg) % (2 * math.pi)
+                            end_rad = math.radians(end_deg) % (2 * math.pi)
+
+                            in_cage = False
+                            if start_rad < end_rad:
+                                in_cage = start_rad <= angle <= end_rad
+                            else:
+                                in_cage = angle >= start_rad or angle <= end_rad
+
+                            if in_cage and ball.cage == 0:
+                                teamScored = index
+                                return True, teamScored
+                        else:
+                            return False, None
+
+        return False, None
 
 
 
@@ -258,9 +311,31 @@ class Cercle:
                 color = (*self.color[:3], alpha)
                 pygame.draw.line(screen, color, (x1, y1), (x2, y2), 5)
 
-        elif self.close:
-            pygame.draw.circle(screen, self.color, (540, 960), self.rayon, 10)
+        else:
+            if self.close:
+                pygame.draw.circle(screen, self.color, (540, 960), self.rayon, 6)
 
-        elif self.active:
             rect = pygame.Rect(540 - self.rayon, 960 - self.rayon, 2 * self.rayon, 2 * self.rayon)
-            pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 6)
+
+            if self.cages:
+                for index, (start_deg, end_deg) in self.cages.items():
+                    if index in [1]:  # cages rouges
+                        color = (255, 0, 0)
+                        start = math.radians(start_deg + 5)
+                        end = math.radians(end_deg - 5)
+                    
+                    elif index in [2]:  # cages vertes
+                        color = (0, 0, 255)
+                        start = math.radians(start_deg + 5)
+                        end = math.radians(end_deg - 5)
+                    else:  # arcs blancs
+                        color =  (23, 211, 0) 
+                        start = math.radians(start_deg )
+                        end = math.radians(end_deg )
+
+                    pygame.draw.arc(screen, color, rect, start, end, 5)
+
+            elif self.active and not self.close:
+                pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 5)
+
+

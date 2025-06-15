@@ -17,17 +17,17 @@ def rotate_point_around_center(point, center, angle_rad):
 
 
 mode = "trainee"  # Modes possibles : "invisible", "trainee", "trace"
-onBounce = "linked" #linked , #none
+onBounce = "none" #linked , #none
 look = "none"
 
 class Balle:
 
     
-    def __init__(self, color, colorIn, note_sounds, image_path=None, hidden_image=None, image_rect=None, position=None, velocity=None):
+    def __init__(self, radius, color, colorIn, note_sounds, image_path=None, hidden_image=None, image_rect=None, position=None, velocity=None, cage=None):
 
         self.position = np.array(position if position is not None else [540.0, 600.0], dtype=float)
         self.velocity = np.array(velocity if velocity is not None else [random.uniform(-5, 5), 0.0], dtype=float)
-        self.radius = 10
+        self.radius = radius
         self.score = 0
         self.color = color
         self.colorIn = colorIn
@@ -40,14 +40,16 @@ class Balle:
         self.active = True
         self.gravity_enabled = True
         self.rebonds_segments= []
-        self.rotate_angle = 0.005  
-        
+        self.rotate_angle = 0.005 
+        self.cage = cage
 
 
         # Chargement de l'image si fournie
         if image_path and os.path.exists(image_path):
             self.image = pygame.image.load(image_path).convert_alpha()
-            self.image = pygame.transform.scale(self.image, (self.radius * 1.5, self.radius * 1.5))
+            diameter = self.radius * 2
+            self.image = pygame.transform.smoothscale(self.image, (diameter, diameter))
+
         else:
             self.image = None
 
@@ -61,6 +63,9 @@ class Balle:
                 self.trail.pop(0)
         if mode == "trace":        
             self.path.append((self.position.copy(), self.radius))
+
+
+    
 
 
     def on_bounce(self):
@@ -82,7 +87,8 @@ class Balle:
             else:
                 self.rebonds_segments.append([self.position.copy(), self.position.copy()])
 
-            
+
+
 
 
     def draw(self, screen):
@@ -124,7 +130,7 @@ class Balle:
                     screen.blit(s, (pos[0] - self.radius, pos[1] - self.radius))
 
             if mode == "trace":
-                for i in range(0, len(self.path), 5):
+                for i in range(0, len(self.path), 2):
                     pos, radius = self.path[i]
                     t = i / len(self.path)
                     r, g, b = colorsys.hsv_to_rgb(t, 1, 1)
