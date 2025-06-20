@@ -16,7 +16,7 @@ def rotate_point_around_center(point, center, angle_rad):
     return rotated + center
 
 
-mode = "trainee"  # Modes possibles : "invisible", "trainee", "trace"
+mode = "none"  # Modes possibles : "invisible", "trainee", "trace"
 onBounce = "none" #linked , #none
 look = "none"
 
@@ -47,7 +47,7 @@ class Balle:
         # Chargement de l'image si fournie
         if image_path and os.path.exists(image_path):
             self.image = pygame.image.load(image_path).convert_alpha()
-            diameter = self.radius * 2
+            diameter = self.radius * 1.5
             self.image = pygame.transform.smoothscale(self.image, (diameter, diameter))
 
         else:

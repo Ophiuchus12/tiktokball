@@ -317,19 +317,48 @@ class Cercle:
 
             rect = pygame.Rect(540 - self.rayon, 960 - self.rayon, 2 * self.rayon, 2 * self.rayon)
 
-            if self.cages:
+            if len(self.cages.items())<=4:
                 for index, (start_deg, end_deg) in self.cages.items():
                     if index in [1]:  # cages rouges
-                        color = (255, 0, 0)
+                        color = (255,0,0)
                         start = math.radians(start_deg + 5)
                         end = math.radians(end_deg - 5)
                     
                     elif index in [2]:  # cages vertes
-                        color = (0, 0, 255)
+                        color = (  0, 205, 255 )
                         start = math.radians(start_deg + 5)
                         end = math.radians(end_deg - 5)
                     else:  # arcs blancs
                         color =  (23, 211, 0) 
+                        start = math.radians(start_deg )
+                        end = math.radians(end_deg )
+
+                    pygame.draw.arc(screen, color, rect, start, end, 5)
+
+            if len (self.cages.items())>4:
+                for index, (start_deg, end_deg) in self.cages.items():
+                    if index in [1]:  # cages rouges
+                        color = (0, 0, 255)
+                        start = math.radians(start_deg + 3)
+                        end = math.radians(end_deg - 3)
+                    
+                    elif index in [2]:  # cages vertes
+                        color = (255, 0, 0)
+                        start = math.radians(start_deg + 3)
+                        end = math.radians(end_deg - 3)
+                    
+                    elif index in [3]:
+                        color = ( 174, 174, 174)
+                        start = math.radians(start_deg + 3)
+                        end = math.radians(end_deg - 3)
+                    
+                    elif index in [4]:
+                        color = (  255, 154, 0 )
+                        start = math.radians(start_deg + 3)
+                        end = math.radians(end_deg - 3)
+
+                    else:  # arcs blancs
+                        color =  ( 63, 63, 63 ) 
                         start = math.radians(start_deg )
                         end = math.radians(end_deg )
 

@@ -55,26 +55,34 @@ vy = math.sin(angle) * vitesse
 #ball2 = Balle((  46, 134, 193  ), (  46, 134, 193  ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx+2, vy+2]))
 
 
-ball1 = Balle(80,( 255, 0, 0 ), (0, 0, 0), note_sounds, image_path='images/china.png', position =np.array([540.0, 600.0]), velocity= np.array([vx, vy]),cage=2)
+ball1 = Balle(90,(255, 0, 0), (0, 0, 0), note_sounds, image_path='images/toulouse.png', position =np.array([540.0, 600.0]), velocity= np.array([vx, vy]),cage=2)
+ball2 = Balle(90,( 0, 205, 255  ), (0, 0, 0), note_sounds, image_path='images/bayonne.png', position=np.array([580.0, 600.0]),velocity= np.array([-vx, vy]),cage=1)
+#ball3 = Balle(60,( 163, 167, 162 ), (0, 0, 0), note_sounds, image_path='images/mercedes.png', position=np.array([520.0, 600.0]),velocity= np.array([-vx, vy]),cage=3)
+#ball4 = Balle(60,( 255, 154, 0), (0, 0, 0), note_sounds, image_path='images/maclaren.png', position=np.array([480.0, 600.0]),velocity= np.array([-vx, vy]),cage=4)
 
-ball2 = Balle(80,(  255, 255, 255  ), (0, 0, 0), note_sounds, image_path='images/usa.png', position=np.array([580.0, 600.0]),velocity= np.array([-vx, vy]),cage=1)
-ball3 = Balle(20,(  0, 0, 0  ), (0, 0, 0), note_sounds, image_path='images/ball.png', position=np.array([560.0, 600.0]),velocity= np.array([vx, vy]),cage=0)
-ball3.gravity_enabled = False  
+ball0 = Balle(20,( 0,0,0 ), (0, 0, 0), note_sounds, image_path='images/rugby.png', position=np.array([560.0, 600.0]),velocity= np.array([vx, vy]),cage=0)
+ball0.gravity_enabled = False  
 
 
 
-balles = [ball1, ball2, ball3]
+balles = [ball0, ball1, ball2]
 
 # Avant la boucle principale
 logo1 = logo2 = None
-logo_size = (140, 100 )
+logo_size = (120, 100 )
 
 if os.path.exists("images/barca.png") and os.path.exists("images/rm.png"):
-    logo1 = pygame.image.load("images/china.png").convert_alpha()
-    logo2 = pygame.image.load("images/usa.png").convert_alpha()
+    logo1 = pygame.image.load("images/toulouse.png").convert_alpha()
+    logo2 = pygame.image.load("images/bayonne.png").convert_alpha()
+    logo3 = pygame.image.load("images/mercedes.png").convert_alpha()
+    logo4 = pygame.image.load("images/maclaren.png").convert_alpha()
+
 
     logo1 = pygame.transform.scale(logo1, logo_size)
     logo2 = pygame.transform.scale(logo2, logo_size)
+    logo3 = pygame.transform.scale(logo3, logo_size)
+    logo4 = pygame.transform.scale(logo4, logo_size)
+
 
 
 
@@ -159,7 +167,22 @@ if colorTheme == "cageCercle":
     cercle_cages = Cercle(rayon, 0, 360, color=(255, 255, 255), index=0, cages=cages)
     cercles.append(cercle_cages)
 
+if colorTheme == "cageCercle4":
+    rayon = 525
+    cages = {
+        1: (0, 40),         # Cage rouge
+        2: (90, 130),       # Cage rouge
+        3: (180, 220),      # Cage rouge
+        4: (270, 310),      # Cage rouge
 
+        5: (40, 90),        # Zone blanche pleine
+        6: (130, 180),      # Zone blanche pleine
+        7: (220, 270),      # Zone blanche pleine
+        8: (310, 360)       # Zone blanche pleine
+    }
+
+    cercle_cages = Cercle(rayon, 0, 360, color=(255, 255, 255), index=0, cages=cages)
+    cercles.append(cercle_cages)
 
 
 
@@ -246,7 +269,7 @@ def resolve_ball_collision(ball1, ball2):
     ball2.on_bounce()
 
 
-def reset_all_balls(balls, vitesse=10, radius=100):
+def reset_all_balls(balls, vitesse=15, radius=100):
     """
     Réinitialise les positions et vitesses des balles autour du centre de l'écran.
     
@@ -284,7 +307,7 @@ while running:
 
     spacing = 300  # espace horizontal entre les scores (ajuste cette valeur)
     y_position = 300  # position verticale
-    if mode != "infini" and mode != "simpleCercleferme":
+    if mode != "infini" and mode != "simpleCercleferme" and mode !="quadruple":
 
         if capture_image:# Positionner la capture horizontale centrée en X, et juste au-dessus du cercle
             circle_image_x = screen.get_width() // 2 - (capture_image.get_width()/2)
@@ -293,19 +316,19 @@ while running:
 
             screen.blit(capture_image, (circle_image_x, circle_image_y))
 
-        text = "Choose your side ?\n \nWhat could be the next match ? ​​​ \n "
+        text = "Top 14 semi-final 🏉​\n \nStade Toulousain vs Bayonne\n "
         lines = text.split('\n')
         
 
         for i, line in enumerate(lines):
-            rendered = font.render(line, True, ( 255, 0, 0 ))
+            rendered = font.render(line, True, ( 0, 205, 255  ))
             rect = rendered.get_rect(center=(screen.get_width() // 2, y_position - 200 + i * font.get_height()))
             screen.blit(rendered, rect)
 
-        textBelow = "Subscribe and comment below 😈​​\n to be selected for the next video 💪​"
+        textBelow = "Like and subscribe ​​\n I follow back 💪​"
         linesBelow = textBelow.split('\n')
         for i, line in enumerate(linesBelow):
-            rendered = font.render(line, True, ( 0, 0, 255 ))
+            rendered = font.render(line, True, ( 255, 255, 255 ))
             rect = rendered.get_rect(center=(screen.get_width() // 2, y_position + 1400 + i * font.get_height()))
             screen.blit(rendered, rect)
 
@@ -313,7 +336,7 @@ while running:
 
     if mode == "double":
         total_width = (len(balles)-1) * spacing
-        start_x = (screen.get_width() - total_width) // 2
+        start_x = ((screen.get_width() - total_width) // 2) -250
 
         score_y_position = y_position + 1250  
 
@@ -347,6 +370,67 @@ while running:
         timer_rect = timer_text.get_rect(center=(screen.get_width() // 2, y_position+30))
         screen.blit(timer_text, timer_rect)
 
+    if mode == "quadruple":
+        cols = 2
+        rows = 2
+        spacing_x = 300  # Espace horizontal entre colonnes
+        spacing_y = 100  # Espace vertical entre lignes
+        start_x = (screen.get_width() - (cols - 1) * spacing_x) // 2
+        score_y_position = y_position + 1250
+
+        # Logos associés à balles[1] à balles[4]
+        logos = [logo1, logo2, logo3, logo4]
+
+        offset_x = -80
+
+        for display_idx, balle_idx in enumerate(range(1, 5)):  # de balle[1] à balle[4]
+            balle = balles[balle_idx]
+            logo = logos[display_idx]
+
+            if balle.cage != 0:
+                col = display_idx % cols
+                row = display_idx // cols
+                x = start_x + col * spacing_x + offset_x
+                y = score_y_position + row * spacing_y
+
+                # Créer le texte du score
+                score_text = font.render(f"Score: {balle.score}", True, balle.color)
+                text_rect = score_text.get_rect()
+
+                if col == 0:
+                    # Logo à gauche
+                    logo_x = x - logo_size[0] - 10
+                    text_rect.topleft = (x, y)
+                    screen.blit(score_text, text_rect)
+                    if logo:
+                        screen.blit(logo, (logo_x, y))
+                else:
+                    # Logo à droite
+                    text_rect.topleft = (x, y)
+                    screen.blit(score_text, text_rect)
+                    logo_x = x + text_rect.width + 10
+                    if logo:
+                        screen.blit(logo, (logo_x, y))
+
+
+
+        text = "Formula 1 Grand Prix of Canada​​​ \n\n Tell me your prediction in the comments"
+        lines = text.split('\n')
+        
+
+        for i, line in enumerate(lines):
+            rendered = font.render(line, True, ( 34, 201, 168 ))
+            rect = rendered.get_rect(center=(screen.get_width() // 2, y_position - 200 + i * font.get_height()))
+            screen.blit(rendered, rect)
+
+        elapsed = time.time() - countdown_start
+        remaining = max(0, countdown_duration - int(elapsed))  # jamais négatif
+        minutes = remaining // 60
+        seconds = remaining % 60
+        timer_text_str = f"Timer: {minutes:02d}:{seconds:02d}"
+        timer_text = font.render(timer_text_str, True, (  255, 255, 255 ))
+        timer_rect = timer_text.get_rect(center=(screen.get_width() // 2, y_position+30))
+        screen.blit(timer_text, timer_rect)
 
     if mode == "multi":
         # Calcul du temps restant (compte à rebours)
