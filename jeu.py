@@ -37,7 +37,8 @@ image_rect = hidden_image.get_rect(center=(screen.get_width() // 2, screen.get_h
 
 pygame.display.set_caption("Multi Cercle Escape")
 pygame.font.init()
-font = pygame.font.Font("font/symbola/Symbola_hint.ttf", 60)
+font = pygame.font.Font("font/symbola/Symbola.ttf", 60)
+#font.set_bold(True)
 
 clock = pygame.time.Clock()
 
@@ -51,12 +52,15 @@ vy = math.sin(angle) * vitesse
 
 
 #balle pour cercle ferme avec traits 
-#ball1 = Balle((  231, 76, 60  ), ( 231, 76, 60 ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx, vy]))
-#ball2 = Balle((  46, 134, 193  ), (  46, 134, 193  ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx+2, vy+2]))
+# ball1 = Balle(60,(  231, 76, 60  ), ( 231, 76, 60 ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx, vy]))
+# ball2 = Balle(60,(  46, 134, 193  ), (  46, 134, 193  ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx+2, vy+2]))
+# ball3 = Balle(60,(  244, 208, 63 ), ( 244, 208, 63 ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx+2, vy+2]))
+# ball4 = Balle(60,( 22, 160, 133 ), ( 22, 160, 133 ), note_sounds, image_path=None, hidden_image=None, image_rect=None, velocity= np.array([vx+2, vy+2]))
 
 
-ball1 = Balle(90,(255, 0, 0), (0, 0, 0), note_sounds, image_path='images/toulouse.png', position =np.array([540.0, 600.0]), velocity= np.array([vx, vy]),cage=2)
-ball2 = Balle(90,( 0, 205, 255  ), (0, 0, 0), note_sounds, image_path='images/bayonne.png', position=np.array([580.0, 600.0]),velocity= np.array([-vx, vy]),cage=1)
+
+ball1 = Balle(90,(205, 1, 23), (0, 0, 0), note_sounds, image_path='images/rct.png', position =np.array([540.0, 600.0]), velocity= np.array([vx, vy]),cage=2)
+ball2 = Balle(90,(89, 24, 52 ), (0, 0, 0), note_sounds, image_path='images/bordeaux.png', position=np.array([580.0, 600.0]),velocity= np.array([-vx, vy]),cage=1)
 #ball3 = Balle(60,( 163, 167, 162 ), (0, 0, 0), note_sounds, image_path='images/mercedes.png', position=np.array([520.0, 600.0]),velocity= np.array([-vx, vy]),cage=3)
 #ball4 = Balle(60,( 255, 154, 0), (0, 0, 0), note_sounds, image_path='images/maclaren.png', position=np.array([480.0, 600.0]),velocity= np.array([-vx, vy]),cage=4)
 
@@ -65,15 +69,15 @@ ball0.gravity_enabled = False
 
 
 
-balles = [ball0, ball1, ball2]
+balles = [ ]
 
 # Avant la boucle principale
 logo1 = logo2 = None
 logo_size = (120, 100 )
 
 if os.path.exists("images/barca.png") and os.path.exists("images/rm.png"):
-    logo1 = pygame.image.load("images/toulouse.png").convert_alpha()
-    logo2 = pygame.image.load("images/bayonne.png").convert_alpha()
+    logo1 = pygame.image.load("images/rct.png").convert_alpha()
+    logo2 = pygame.image.load("images/bordeaux.png").convert_alpha()
     logo3 = pygame.image.load("images/mercedes.png").convert_alpha()
     logo4 = pygame.image.load("images/maclaren.png").convert_alpha()
 
@@ -92,7 +96,7 @@ if os.path.exists("images/barca.png") and os.path.exists("images/rm.png"):
 cercles = []
 min_radius = 80
 spacing = 15  # Espace entre les cercles
-colorTheme = "cageCercle"  # "unicolor" ou "multicolor"
+colorTheme = "triple"  # "unicolor" ou "multicolor"
 
 def generate_circle_colors(n):
     colors = []
@@ -186,25 +190,77 @@ if colorTheme == "cageCercle4":
 
 
 
-if colorTheme == "multiCercleFerme":
-    for i in range(100):
-        radius = min_radius + i * spacing
-        if 2 * radius < min(screen.get_width(), screen.get_height()):
-            cercle = Cercle(radius, 0, 360, color=(  248, 0, 154  ))
-            cercle.close = True
-            cercles.append(cercle)
+# if colorTheme == "multiCercleFerme":
+#     for i in range(100):
+#         radius = min_radius + i * spacing
+#         if 2 * radius < min(screen.get_width(), screen.get_height()):
+#             cercle = Cercle(radius, 0, 360, color=(  248, 0, 154  ))
+#             cercle.close = True
+#             cercles.append(cercle)
+
+if colorTheme == "triple":
+    rayon = 250
+    cx, cy = 540, 960
+    angle_offset = math.radians(120)
+    
+    for i in range(3):
+        angle = i * angle_offset
+        x = cx + 1.15 * rayon * math.cos(angle)
+        y = cy + 1.15 * rayon * math.sin(angle)
+        
+        # Calcul de l'angle vers le centre
+        angle_vers_centre = math.atan2(cy - y, cx - x)
+        
+        # Span d'ouverture pour créer une connexion entre les cercles
+        arc_span = math.radians(30)  # Augmenté pour permettre la connexion
+        
+        # Inverser l'ouverture pour les deux cercles de gauche (indices 1 et 2)
+        if i == 1:
+            angle_vers_centre += (math.pi)/1.5  # Inverse la direction
+
+        if i ==2 :
+            angle_vers_centre -= (math.pi)/1.5
+        
+        # Les angles d'ouverture sont centrés sur la direction vers le centre
+        start_deg = math.degrees(angle_vers_centre - arc_span / 2)
+        end_deg = math.degrees(angle_vers_centre + arc_span / 2)
+        
+        cercle = Cercle(rayon, start_deg, end_deg, color=( 25, 207, 172 ), x=x, y=y)
+        cercle.rotation_direction = 1 if i % 2 == 0 else -1
+        cercles.append(cercle)
+        
+        balle = Balle(
+            10,
+            (
+                random.randint(0, 255),
+                random.randint(0, 255),
+                random.randint(0, 255)
+            ),  
+            (255, 255, 255),
+            note_sounds,
+            image_path=None, 
+            hidden_image=None, 
+            image_rect=None,
+            position=(x, y),
+            velocity=np.array([-10.0, -5.0]),  # balle statique au départ
+            rond=cercle
+        )
+        balles.append(balle)
+
+
 
 
 
 TOTAL_FRAMES = 60 * 85
 frame_count = 0
 running = True
-mode = "double"  # "double", "multi", "simple", "infini", "simpleCercleferme"
-visu = "no"  
+mode = "simple"  # "double", "multi", "simple", "infini", "simpleCercleferme"
+visu = "clean"  
 countdown_start = time.time()
 countdown_duration = 60 
-theme = "cageCercle"  # "classique" ou "simpleCercle"
+theme = "tripleCercle"  # "classique" ou "simpleCercle"
 nbBalles = 1  # une balle au départ
+rotate = "none"  #rotateCercles
 
 background_image = pygame.image.load("images/etoile.jpeg").convert()
 background_image = pygame.transform.scale(background_image, (screen.get_width(), screen.get_height()))
@@ -297,6 +353,46 @@ def reset_all_balls(balls, vitesse=15, radius=100):
 
 
 
+def rotate_cercles_orbital(cercles, center_x, center_y, rotation_speed, rotation_direction):
+    """Les centres des cercles tournent autour du centre écran, ouvertures restent vers le centre"""
+    angle = rotation_speed * rotation_direction
+    cos_a = math.cos(angle)
+    sin_a = math.sin(angle)
+    
+    for i, cercle in enumerate(cercles):
+        # 1. Faire tourner la POSITION du centre du cercle autour du centre écran
+        dx = cercle.x - center_x
+        dy = cercle.y - center_y
+        
+        new_dx = dx * cos_a - dy * sin_a
+        new_dy = dx * sin_a + dy * cos_a
+        
+        cercle.x = center_x + new_dx
+        cercle.y = center_y + new_dy
+        
+        # 2. Recalculer l'angle vers le centre pour cette nouvelle position
+        angle_vers_centre = math.atan2(center_y - cercle.y, center_x - cercle.x)
+        
+        # 3. Appliquer les ajustements spécifiques selon ton code original
+        if i == 1:
+            angle_vers_centre += (math.pi)/1.5  # Ajustement pour cercle 1
+        if i == 2:
+            angle_vers_centre -= (math.pi)/1.5  # Ajustement pour cercle 2
+        
+        # 4. Recalculer les angles d'ouverture avec ton arc_span original
+        arc_span = math.radians(40)  # Utilise ta valeur originale
+        start_deg = math.degrees(angle_vers_centre - arc_span / 2)
+        end_deg = math.degrees(angle_vers_centre + arc_span / 2)
+        
+        # 5. Mettre à jour les angles du cercle (en radians)
+        cercle.start_angle = math.radians(start_deg)
+        cercle.end_angle = math.radians(end_deg)
+
+        
+        
+        
+        
+
 
 
 while running:
@@ -316,13 +412,36 @@ while running:
 
             screen.blit(capture_image, (circle_image_x, circle_image_y))
 
-        text = "Top 14 semi-final 🏉​\n \nStade Toulousain vs Bayonne\n "
+        text = "+ 1 ball for each circle change​​\n​ "
         lines = text.split('\n')
         
 
+        max_width = 0
+        total_height = 0
+        rendered_lines = []
+
         for i, line in enumerate(lines):
-            rendered = font.render(line, True, ( 0, 205, 255  ))
-            rect = rendered.get_rect(center=(screen.get_width() // 2, y_position - 200 + i * font.get_height()))
+            rendered = font.render(line, True, (0, 0, 0))
+            rendered_lines.append(rendered)
+            rect = rendered.get_rect()
+            max_width = max(max_width, rect.width)
+            total_height += rect.height
+
+        # Coordonnées du fond
+        padding = 10
+        bg_rect = pygame.Rect(
+            (screen.get_width() - max_width) // 2 - padding // 2,
+            y_position - 200 - padding // 2,
+            max_width + padding,
+            total_height + padding
+        )
+
+        # Dessine le fond blanc
+        pygame.draw.rect(screen, (255, 255, 255), bg_rect, border_radius=15)
+
+        # Affiche les lignes par-dessus
+        for i, rendered in enumerate(rendered_lines):
+            rect = rendered.get_rect(center=(screen.get_width() // 2, y_position - 150 + i * font.get_height()))
             screen.blit(rendered, rect)
 
         textBelow = "Like and subscribe ​​\n I follow back 💪​"
@@ -489,8 +608,12 @@ while running:
         running = False
 
     # Met à jour chaque cercle
-    for c in cercles:
-        c.update_angles()
+    if theme != "tripleCercle":
+        for c in cercles:
+            c.update_angles()
+    elif theme == "tripleCercle" and rotate == "rotateCercles" :
+        center_x, center_y = screen.get_width() // 2, screen.get_height() // 2
+        rotate_cercles_orbital(cercles, center_x, center_y, 0.01, -1)
 
     # Supprime les cercles qui sont "morts"
     cercles = [c for c in cercles if c.update_mort()]
@@ -535,7 +658,7 @@ while running:
         new_balles = []
         for c in cercles:
             for b in balles:
-                passed = c.check_collision_simple(b)
+                passed = c.check_collision_simple(b, center = np.array([c.x, c.y]))
                 if passed and mode == "simple" and b.active:
                     
                     
@@ -627,6 +750,107 @@ while running:
 
         if any_goal:
             reset_all_balls(balles)
+
+
+    if theme == "tripleCercle":
+        balles_to_remove = []
+        new_balles = []
+
+        for b in balles:
+            if not b.active:
+                continue
+
+            # Assignation de cage initiale si nécessaire
+            if b.cage is None:
+                # Trouve le cercle le plus proche
+                closest_circle = None
+                min_distance = float('inf')
+                for c_init in cercles:
+                    distance = np.linalg.norm(b.position - np.array([c_init.x, c_init.y]))
+                    if distance < min_distance:
+                        min_distance = distance
+                        closest_circle = c_init
+                b.cage = closest_circle
+
+            # Vérification des passages vers d'autres cercles
+            passage_detected = False
+            for c in cercles:
+                if c != b.cage:
+                    # Vérifie si la balle entre dans un nouveau cercle
+                    if c.check_passage_only(b):
+                        
+                        # Délai minimum entre changements de cage pour éviter l'oscillation
+                        if frame_count - b.last_cage_change_frame > 2:  # Augmenté de 5 à 10
+                            old_cage = b.cage
+                            b.cage = c
+                            b.last_cage_change_frame = frame_count
+                            
+                            # Ajustement de position plus doux
+                            center_old = np.array([old_cage.x, old_cage.y])
+                            center_new = np.array([c.x, c.y])
+                            
+                            # Calcule la direction d'entrée dans le nouveau cercle
+                            entry_vector = b.position - center_new
+                            entry_distance = np.linalg.norm(entry_vector)
+                            
+                            if entry_distance > 0:
+                                # Place la balle légèrement à l'intérieur du nouveau cercle
+                                normalized_entry = entry_vector / entry_distance
+                                safe_distance = c.rayon - b.radius * 1.5  # Distance sécurisée
+                                b.position = center_new + normalized_entry * safe_distance
+                            
+                            
+                            passage_detected = True
+
+                            clonedBalle = b.clone(position = np.array([old_cage.x, old_cage.y]))
+                            clonedBalle.cage = old_cage
+                            clonedBalle.last_cage_change_frame = frame_count
+                            clonedBalle.color = (
+                                random.randint(0, 255),
+                                random.randint(0, 255),
+                                random.randint(0, 255)
+                            )
+
+                            clonedBalle2 = b.clone(position = np.array([old_cage.x, old_cage.y]))
+                            clonedBalle2.cage = old_cage
+                            clonedBalle2.last_cage_change_frame = frame_count
+                            clonedBalle2.color = (
+                                random.randint(0, 255),
+                                random.randint(0, 255),
+                                random.randint(0, 255)
+                            )
+                            new_balles.append(clonedBalle)
+                            new_balles.append(clonedBalle2)
+
+                               
+                            break
+
+            # Collision avec la cage actuelle
+            if not passage_detected and b.cage is not None:
+                passed, passedBall =  b.cage.check_collision_triple(b)
+                if passed and passedBall != None :
+                    if (
+                    passedBall.position[0] < 0 or passedBall.position[0] > screen.get_width() or
+                    passedBall.position[1] < 0 or passedBall.position[1] > screen.get_height()
+                    ):
+                        balles_to_remove.append(passedBall)
+
+
+
+            # Suppression des balles sorties de l'écran
+            
+
+
+        # Nettoie les balles supprimées
+        for b in balles_to_remove:
+            if b in balles:
+                balles.remove(b)
+
+        # Ajoute les nouvelles balles si nécessaire
+        balles.extend(new_balles)
+
+
+
  
 
 
@@ -641,15 +865,15 @@ while running:
 
 
 
-    # Gère les collisions entre toutes les paires de balles
-    handled_pairs = set()
-    for i in range(len(balles)):
-        for j in range(i + 1, len(balles)):
-            if (i, j) not in handled_pairs:
-                b1, b2 = balles[i], balles[j]
-                if check_balls_collision(b1, b2):
-                    resolve_ball_collision(b1, b2)
-                    handled_pairs.add((i, j))
+    # # Gère les collisions entre toutes les paires de balles
+    # handled_pairs = set()
+    # for i in range(len(balles)):
+    #     for j in range(i + 1, len(balles)):
+    #         if (i, j) not in handled_pairs:
+    #             b1, b2 = balles[i], balles[j]
+    #             if check_balls_collision(b1, b2):
+    #                 resolve_ball_collision(b1, b2)
+    #                 handled_pairs.add((i, j))
 
 
     # Dessine tout

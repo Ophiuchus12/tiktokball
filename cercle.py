@@ -7,6 +7,7 @@ rotate = "stuck"
 onBounce = "cage"  # "linked" ou "none"
 look = "none"
 
+
 def reflect(velocity, normal):
         # R = V - 2 * (V • N) * N
         dot = velocity[0]*normal[0] + velocity[1]*normal[1]
@@ -17,7 +18,7 @@ def reflect(velocity, normal):
         return reflected
 
 class Cercle:
-    def __init__(self, rayon, start_deg, end_deg, color=(255, 255, 255), index=0, cages=None):
+    def __init__(self, rayon, start_deg, end_deg, color=(255, 255, 255), index=0, cages=None, x=540, y=960):
         self.rayon = rayon
         self.start_angle = math.radians(start_deg)
         self.end_angle = math.radians(end_deg)
@@ -27,6 +28,8 @@ class Cercle:
         self.death_timer = 0
         self.shards = []
         self.cages = cages if cages else {}
+        self.x = x
+        self.y = y
 
 
         if rotate == "free":
@@ -35,7 +38,7 @@ class Cercle:
         
         elif rotate == "stuck":
             self.rotation_speed = 0.01
-            self.rotation_direction = 1
+            self.rotation_direction = -1
 
         self.index = index  # <- nouvel attribut
         self.close = False  # Indique si le cercle est fermé
@@ -55,6 +58,22 @@ class Cercle:
                 end_deg = (end_deg + math.degrees(delta)) % 360
                 new_cages[index] = (start_deg, end_deg)
             self.cages = new_cages
+
+    def rotate_around_center(self, center_x, center_y):
+        """Fait tourner uniquement la position du cercle autour du centre de l'écran, sans changer les angles."""
+        dx = self.x - center_x
+        dy = self.y - center_y
+
+        angle = self.rotation_speed * self.rotation_direction
+
+        cos_a = math.cos(angle)
+        sin_a = math.sin(angle)
+
+        new_dx = dx * cos_a - dy * sin_a
+        new_dy = dx * sin_a + dy * cos_a
+
+        self.x = center_x + new_dx
+        self.y = center_y + new_dy
 
 
 
@@ -98,11 +117,11 @@ class Cercle:
                     ball.on_bounce()
         return False  
 
-    def check_collision_simple(self, ball):
+    def check_collision_simple(self, ball, center = np.array([540.0, 960.0])):
         if not self.active:
             return False
 
-        center = np.array([540.0, 960.0])
+        center = center
         direction = ball.position - center
         distance = np.linalg.norm(direction)
 
@@ -149,6 +168,96 @@ class Cercle:
                         last_segment[0] = center + seg_dir * (dist_center_to_ball + ball.radius)
 
         return False
+    
+    def check_collision_triple(self, ball):
+        """Version améliorée de la collision pour éviter les rebonds multiples"""
+        if not self.active:
+            return False, None
+
+        center = np.array([self.x, self.y], dtype=float)
+        direction = ball.position - center
+        distance = np.linalg.norm(direction)
+
+        if distance == 0:
+            return False, None
+
+        # Collision avec le bord du cercle
+        if distance + ball.radius >= self.rayon:
+            angle = math.degrees(math.atan2(-direction[1], direction[0])) % 360
+            start_deg = math.degrees(self.start_angle) % 360
+            end_deg = math.degrees(self.end_angle) % 360
+
+            # Vérifie si c'est dans l'ouverture (passage libre)
+            if start_deg < end_deg:
+                in_hole = start_deg <= angle <= end_deg
+            else:
+                in_hole = angle >= start_deg or angle <= end_deg
+
+            if in_hole:
+                # Passage libre, on laisse passer
+                ball.score += 1
+                return True, ball
+            else:
+                # Rebond sur la paroi solide
+                normal = direction / distance
+                
+                # Vérification pour éviter les rebonds multiples
+                # Si la balle se dirige déjà vers l'extérieur, ne pas rebondir
+                velocity_towards_surface = np.dot(ball.velocity, normal)
+                if velocity_towards_surface <= 0:
+                    return False, None  # La balle s'éloigne déjà
+                
+                # Effectuer le rebond
+                ball.velocity = ball.velocity - 2 * np.dot(ball.velocity, normal) * normal
+                
+                # Repositionner exactement sur la surface
+                ball.position = center + normal * (self.rayon - ball.radius)
+                
+                ball.on_bounce()
+
+                # Gestion des segments de rebond si activé
+                if onBounce == "linked" and len(ball.rebonds_segments) > 1:
+                    last_segment = ball.rebonds_segments[-1]
+                    seg_dir = last_segment[0] - center
+                    seg_dist = np.linalg.norm(seg_dir)
+                    if seg_dist != 0:
+                        seg_dir /= seg_dist
+                        dist_center_to_ball = np.linalg.norm(ball.position - center)
+                        last_segment[0] = center + seg_dir * (dist_center_to_ball + ball.radius)
+
+        return False, None
+    
+    def check_passage_only(self, ball):
+        """Version améliorée de la détection de passage"""
+        if not self.active:
+            return False
+
+        center = np.array([self.x, self.y], dtype=float)
+        direction = ball.position - center
+        distance = np.linalg.norm(direction)
+
+        # Vérification si la balle est dans la zone d'influence du cercle
+        # mais pas trop près (pour éviter les faux positifs)
+        if self.rayon - ball.radius * 2 < distance < self.rayon + ball.radius * 2:
+            angle = math.degrees(math.atan2(-direction[1], direction[0])) % 360
+            start_deg = math.degrees(self.start_angle) % 360
+            end_deg = math.degrees(self.end_angle) % 360
+
+            # Vérifie si la balle est dans l'ouverture
+            if start_deg < end_deg:
+                in_hole = start_deg <= angle <= end_deg
+            else:
+                in_hole = angle >= start_deg or angle <= end_deg
+
+            # Vérification supplémentaire : la balle se dirige-t-elle vers l'intérieur ?
+            velocity_towards_center = np.dot(ball.velocity, -direction / distance) if distance > 0 else 0
+            
+            return in_hole and velocity_towards_center > 0
+
+        return False
+
+
+
 
 
     
@@ -185,8 +294,7 @@ class Cercle:
                         # position du point sur la surface de la balle
                         last_segment[0] = center + seg_dir * (dist_center_to_ball + ball.radius)
 
-                #ball.radius += 2
-
+                # ball.velocity *= 1.02  # +x% de vitesse
 
 
         return False
@@ -315,17 +423,18 @@ class Cercle:
             if self.close:
                 pygame.draw.circle(screen, self.color, (540, 960), self.rayon, 6)
 
-            rect = pygame.Rect(540 - self.rayon, 960 - self.rayon, 2 * self.rayon, 2 * self.rayon)
+            center = (self.x, self.y)
+            rect = pygame.Rect(self.x - self.rayon, self.y - self.rayon, 2 * self.rayon, 2 * self.rayon)
 
             if len(self.cages.items())<=4:
                 for index, (start_deg, end_deg) in self.cages.items():
                     if index in [1]:  # cages rouges
-                        color = (255,0,0)
+                        color = (205, 1, 23)
                         start = math.radians(start_deg + 5)
                         end = math.radians(end_deg - 5)
                     
                     elif index in [2]:  # cages vertes
-                        color = (  0, 205, 255 )
+                        color = ( 89, 24, 52)
                         start = math.radians(start_deg + 5)
                         end = math.radians(end_deg - 5)
                     else:  # arcs blancs
@@ -333,7 +442,7 @@ class Cercle:
                         start = math.radians(start_deg )
                         end = math.radians(end_deg )
 
-                    pygame.draw.arc(screen, color, rect, start, end, 5)
+                    pygame.draw.arc(screen, color, rect, start, end, 8)
 
             if len (self.cages.items())>4:
                 for index, (start_deg, end_deg) in self.cages.items():
@@ -364,7 +473,8 @@ class Cercle:
 
                     pygame.draw.arc(screen, color, rect, start, end, 5)
 
+
             elif self.active and not self.close:
-                pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 5)
+                pygame.draw.arc(screen, self.color, rect, self.end_angle, self.start_angle, 9)
 
 

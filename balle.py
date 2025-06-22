@@ -23,7 +23,7 @@ look = "none"
 class Balle:
 
     
-    def __init__(self, radius, color, colorIn, note_sounds, image_path=None, hidden_image=None, image_rect=None, position=None, velocity=None, cage=None):
+    def __init__(self, radius, color, colorIn, note_sounds, image_path=None, hidden_image=None, image_rect=None, position=None, velocity=None, cage=None, rond= None):
 
         self.position = np.array(position if position is not None else [540.0, 600.0], dtype=float)
         self.velocity = np.array(velocity if velocity is not None else [random.uniform(-5, 5), 0.0], dtype=float)
@@ -42,12 +42,16 @@ class Balle:
         self.rebonds_segments= []
         self.rotate_angle = 0.005 
         self.cage = cage
+        self.rond = rond
+        self.last_cage_change_frame = 0
+        self.last_collision_frame = 0  
+        self.transition_cooldown = 0
 
 
         # Chargement de l'image si fournie
         if image_path and os.path.exists(image_path):
             self.image = pygame.image.load(image_path).convert_alpha()
-            diameter = self.radius * 1.5
+            diameter = self.radius * 1.8
             self.image = pygame.transform.smoothscale(self.image, (diameter, diameter))
 
         else:
@@ -57,6 +61,10 @@ class Balle:
         if self.gravity_enabled:
             self.velocity[1] += 0.2  # Gravité
         self.position += self.velocity
+
+        if self.transition_cooldown > 0:
+            self.transition_cooldown -= 1
+
         if mode == "trainee":
             self.trail.append(self.position.copy())
             if len(self.trail) > self.max_trail_length:
@@ -69,6 +77,14 @@ class Balle:
 
 
     def on_bounce(self):
+
+        # Évite les rebonds trop fréquents
+        current_frame = pygame.time.get_ticks() // (1000 // 60)  # Frame approximative
+        if current_frame - self.last_collision_frame < 3:  # Minimum 3 frames entre rebonds
+            return
+            
+        self.last_collision_frame = current_frame
+
         note = random.choice(list(self.note_sounds.values()))
         channel = note.play()
         if channel:
@@ -143,7 +159,7 @@ class Balle:
 
 
             # Dessin complet de la balle normale
-            pygame.draw.circle(screen, self.color, int_pos, self.radius + 2)
+            pygame.draw.circle(screen, self.color, int_pos, self.radius + 5)
             if self.image:
                 rect = self.image.get_rect(center=int_pos)
                 screen.blit(self.image, rect)
@@ -161,20 +177,22 @@ class Balle:
                 segment[0] = rotated_start
 
 
-    def clone(self):
+    def clone(self, position=None):
         new_balle = Balle(
-        color=self.color,
-        colorIn=self.colorIn,
-        note_sounds=self.note_sounds,
-        image_path=None,
-        hidden_image=self.hidden_image,
-        image_rect=self.image_rect
+            radius=self.radius,
+            color=self.color,
+            colorIn=self.colorIn,
+            note_sounds=self.note_sounds,
+            image_path=None,
+            hidden_image=self.hidden_image,
+            image_rect=self.image_rect
         )
-        new_balle.position = np.array([540.0, 600.0])
-        new_balle.velocity = np.array([random.uniform(-5, 5), 0.0])
+        new_balle.position = position if position is not None else self.position.copy()
+        new_balle.velocity = np.array([-8.0, -7.0])
         new_balle.score = self.score
-        new_balle.image = self.image  # partage la même image Surface
+        new_balle.image = self.image
         return new_balle
+
 
 
     
