@@ -1,5 +1,35 @@
 import numpy as np
 
+from balle import Balle
+
+
+def createBall(
+    radius=None,
+    color=None,
+    colorIn=None,
+    note_sounds=None,
+    image_path=None,
+    hidden_image=None,
+    image_rect=None,
+    position=None,
+    velocity=None,
+    cage=None,
+    rond=None
+):
+    return Balle(
+        radius=radius,
+        color=color,
+        colorIn=colorIn,
+        note_sounds=note_sounds,
+        image_path=image_path,
+        hidden_image=hidden_image,
+        image_rect=image_rect,
+        position=position,
+        velocity=velocity,
+        cage=cage,
+        rond=rond
+    )
+
 
 def check_balls_collision(b1, b2):
     direction = b2.position - b1.position

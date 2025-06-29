@@ -1,1 +1,1 @@
-{"color1": [139, 145, 76], "color2": [139, 89, 76], "logo1": "", "logo2": "", "timer": 60, "modeJeu": "Multicolore"}
+{"color1": [255, 107, 171], "color2": [255, 62, 171], "logo1": "/home/corentin/Projects/tiktokBall/images/flum.png", "logo2": "/home/corentin/Projects/tiktokBall/images/logo.png", "cerclesTheme": "unicolor", "cerclesColor": [187, 62, 171], "timer": 60, "modeJeu": "Classique", "balles_custom": [{"radius": 80, "color": [255, 107, 255], "logo": "/home/corentin/Projects/tiktokBall/images/china.png"}]}

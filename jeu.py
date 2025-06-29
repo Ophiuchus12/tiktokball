@@ -64,7 +64,7 @@ balles = [ball1, ball2, ball0  ]
 
 # Avant la boucle principale
 logo1 = logo2 = None
-logo_size = (120, 100 )
+logo_size = (120, 100)
 
 if os.path.exists("images/barca.png") and os.path.exists("images/rm.png"):
     logo1 = pygame.image.load("images/toulouse.png").convert_alpha()
@@ -101,6 +101,7 @@ countdown_duration = 60
 theme = "cageCercle"  # "classique" ou "simpleCercle"
 nbBalles = 1  # une balle au départ
 rotate = "none"  #rotateCercles
+collision = True 
 
 background_image = pygame.image.load("images/terrain3.jpg").convert()
 background_image = pygame.transform.scale(background_image, (screen.get_width(), screen.get_height()))
@@ -158,6 +159,7 @@ def rotate_cercles_orbital(cercles, center_x, center_y, rotation_speed, rotation
 
         
 while running:
+    frame_count=0
     screen.blit(background_image, (0, 0))
 
     chooseMode(screen, mode = "double", countdown_duration=60, balles = balles, visu = None, logo1=logo1, logo2=logo2)
@@ -245,8 +247,8 @@ while running:
 
             cercles.sort(key=lambda c: c.rayon)
 
-
-    handleBallCollision(balles)
+    if collision == True :
+        handleBallCollision(balles)
 
 
     # Dessine tout
