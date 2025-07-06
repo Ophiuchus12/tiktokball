@@ -31,6 +31,8 @@ def reset_all_balls(balls, vitesse=15, radius=100):
         ball.gravity_enabled = False  # ou True selon besoin
 
 def interaction (screen, theme, mode, cercles, balles ):
+    #print(f"all balls : {len(balles)}")
+    #print(balles)
     new_balles=[]
     balles_to_remove = []
     match theme :
@@ -60,16 +62,16 @@ def interaction (screen, theme, mode, cercles, balles ):
                     c.close_cercle_nogravity(b)
 
         case "simpleCercle":
+            nbBalles = 0  # <- initialisation du score
             for c in cercles:
                 for b in balles:
                     passed = c.check_collision_simple(b, center = np.array([c.x, c.y]))
                     if passed and mode == "simple" and b.active:
-                        
-                        
-                        clone1 = b.clone()
-                        
-                        
-                        clone2 = b.clone()
+
+
+                        clone1 = b.clone(position = np.array([c.x, c.y]))
+
+                        clone2 = b.clone(position = np.array([c.x, c.y]))
                         
                         
                         new_balles.append(clone1)

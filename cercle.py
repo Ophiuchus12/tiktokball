@@ -3,6 +3,14 @@ import math
 import numpy as np
 import random
 
+from note_sounds import load_note_sounds
+
+pygame.mixer.pre_init(44100, -16, 2, 512)
+pygame.init()
+pygame.mixer.set_num_channels(32)
+
+note_sounds = load_note_sounds()
+
 rotate = "stuck"
 onBounce = "cage"  # "linked" ou "none"
 look = "none"
@@ -18,7 +26,7 @@ def reflect(velocity, normal):
         return reflected
 
 class Cercle:
-    def __init__(self, rayon, start_deg, end_deg, color=(255, 255, 255), index=0, cages=None, x=540, y=960):
+    def __init__(self, rayon, start_deg, end_deg, color=(255, 255, 255), index=0, cages=None, x=540.0, y=960.0):
         self.rayon = rayon
         self.start_angle = math.radians(start_deg)
         self.end_angle = math.radians(end_deg)

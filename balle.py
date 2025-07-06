@@ -6,6 +6,15 @@ import colorsys
 from concurrent.futures import ThreadPoolExecutor
 import math
 
+from note_sounds import load_note_sounds
+
+
+pygame.mixer.pre_init(44100, -16, 2, 512)
+pygame.init()
+pygame.mixer.set_num_channels(32)
+
+note_sounds = load_note_sounds()
+
 def rotate_point_around_center(point, center, angle_rad):
     translated = point - center
     cos_a, sin_a = np.cos(angle_rad), np.sin(angle_rad)
@@ -23,7 +32,7 @@ look = "none"
 class Balle:
 
     
-    def __init__(self, radius, color, colorIn, note_sounds, image_path=None, hidden_image=None, image_rect=None, position=None, velocity=None, cage=None, rond= None):
+    def __init__(self, radius, color, colorIn, note_sounds=note_sounds, image_path=None, hidden_image=None, image_rect=None, position=None, velocity=None, cage=None, rond= None):
 
         self.position = np.array(position if position is not None else [540.0, 600.0], dtype=float)
         self.velocity = np.array(velocity if velocity is not None else [random.uniform(-5, 5), 0.0], dtype=float)
@@ -188,7 +197,7 @@ class Balle:
             image_rect=self.image_rect
         )
         new_balle.position = position if position is not None else self.position.copy()
-        new_balle.velocity = np.array([-8.0, -7.0])
+        new_balle.velocity = np.array([random.uniform(-5, 5), 0.0])
         new_balle.score = self.score
         new_balle.image = self.image
         return new_balle

@@ -20,7 +20,6 @@ def createBall(
         radius=radius,
         color=color,
         colorIn=colorIn,
-        note_sounds=note_sounds,
         image_path=image_path,
         hidden_image=hidden_image,
         image_rect=image_rect,

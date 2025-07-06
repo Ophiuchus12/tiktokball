@@ -4,6 +4,7 @@ import json
 import subprocess
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
+import ast
 
 balle_params_list = []
 
@@ -15,7 +16,9 @@ def choisir_couleur(entry):
         entry.insert(0, str(tuple(map(int, couleur))))
 
 def choisir_image(entry):
-    fichier = filedialog.askopenfilename(filetypes=[("Images", "*.png")])
+    fichier = filedialog.askopenfilename(
+        filetypes=[("Images", "*.png *.jpg *.jpeg *.JPG *.JPEG")]
+    )
     if fichier:
         entry.delete(0, tk.END)
         entry.insert(0, fichier)
@@ -93,9 +96,17 @@ def lancer_jeu():
     if cerclesTheme.get() != "triple" and len(balle_params_list) == 0:
         tk.messagebox.showwarning("Avertissement", "Veuillez ajouter au moins une balle.")
         return
+    
+    try:
+        cercles_color = ast.literal_eval(cerclesColor_entry.get()) if cerclesTheme.get() == "unicolor" else (255, 255, 255)
+    except Exception:
+        tk.messagebox.showerror("Erreur", "Couleur de cercle invalide. Format attendu : (r, g, b)")
+        return
+
     config = {
+        "background": bg_entry.get() or "images/etoile.jpeg",
         "cerclesTheme": cerclesTheme.get(),
-        "cerclesColor": eval(cerclesColor_entry.get()) if cerclesTheme.get() == "unicolor" else None,
+        "cerclesColor": cercles_color,
         "timer": int(timer_entry.get()),
         "modeJeu": modeJeu_combo.get(),
         "balles_custom": balle_params_list  # Liste des balles ajoutées
@@ -109,6 +120,12 @@ def lancer_jeu():
 fenetre = ttk.Window(themename="cosmo")
 fenetre.title("Paramètres du jeu")
 fenetre.geometry("400x700")
+
+# Fond d'écran
+ttk.Label(fenetre, text="Background App :").pack()
+bg_entry = ttk.Entry(fenetre)
+bg_entry.pack()
+ttk.Button(fenetre, text="Parcourir", command=lambda: choisir_image(bg_entry)).pack(pady=10)
 
 
 # Thème des cercles + Couleur (groupe dans un Frame)

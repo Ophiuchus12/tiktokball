@@ -2,7 +2,16 @@ import colorsys
 from cercle import Cercle
 import math
 import random 
+from balle import Balle
+import numpy as np
+import pygame
 
+
+pygame.mixer.pre_init(44100, -16, 2, 512)
+pygame.init()
+pygame.mixer.set_num_channels(32)
+
+from note_sounds import load_note_sounds
 
 
 
@@ -23,7 +32,10 @@ def generate_circle_colors(n):
         colors.append((int(r * 255), int(g * 255), int(b * 255), 120))  # avec transparence
     return colors
 
-def chooseStyleGame(screen, theme, min_radius=80 ,spacing=15, color = (255,255,255)):
+
+note_sounds = load_note_sounds()
+
+def chooseStyleGame(screen, theme, min_radius=80 ,spacing=15, color = (255,255,255), balles = []):
 
     cercles = []
 
@@ -48,10 +60,10 @@ def chooseStyleGame(screen, theme, min_radius=80 ,spacing=15, color = (255,255,2
                     cercles.append(Cercle(radius, start_deg, end_deg, color=color[:3]))
 
         case "simpleCercle":
-            if 2 * radius < min(screen.get_width(), screen.get_height()):
+            if 2 * min_radius < min(screen.get_width(), screen.get_height()):
                 start_deg = 320
                 end_deg = 360
-                cercles.append(Cercle(radius, start_deg, end_deg, color=(248, 0, 154)))
+                cercles.append(Cercle(min_radius, start_deg, end_deg, color=(248, 0, 154)))
 
         case "simpleCercleferme":
             cercle1 = Cercle(radius, 0, 360, color=( 217, 15, 241 ))
@@ -107,7 +119,7 @@ def chooseStyleGame(screen, theme, min_radius=80 ,spacing=15, color = (255,255,2
             cercles.append(cercle_cages)
 
         case "triple" :
-            #rayon 250
+            rayon = 250
             cx, cy = 540, 960
             angle_offset = math.radians(120)
             
@@ -143,9 +155,9 @@ def chooseStyleGame(screen, theme, min_radius=80 ,spacing=15, color = (255,255,2
                         random.randint(0, 255),
                         random.randint(0, 255),
                         random.randint(0, 255)
-                    ),  
+                    ),
                     (255, 255, 255),
-                    note_sounds,
+                    note_sounds=note_sounds,  
                     image_path=None, 
                     hidden_image=None, 
                     image_rect=None,

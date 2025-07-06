@@ -5,13 +5,13 @@ import math
 import numpy as np
 import random
 import os
-from common import handleBallCollision
+from common import createBall, handleBallCollision
 from interaction import interaction
 from note_sounds import load_note_sounds
 from concurrent.futures import ThreadPoolExecutor
 from styleApparence import chooseMode
 from styleCercles import chooseStyleGame
-
+import json 
 
 pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()
@@ -19,7 +19,13 @@ pygame.mixer.set_num_channels(32)
 
 note_sounds = load_note_sounds()
 
+with open("config.json", "r") as f:
+    config = json.load(f)
 
+cercleTheme = config.get("cerclesTheme")
+modeJeu = config.get("modeJeu")
+background = config.get("background", "images/etoile.jpeg")
+balles_custom = config.get("balles_custom", [])
 
 screen = pygame.display.set_mode((1080, 1920), pygame.FULLSCREEN | pygame.SCALED | pygame.DOUBLEBUF)
 hidden_image = pygame.image.load("images/logo.png").convert()
@@ -50,17 +56,17 @@ vy = math.sin(angle) * vitesse
 
 
 
-ball1 = Balle(90,(205, 1, 23), (0, 0, 0), note_sounds, image_path='images/toulouse.png', position =np.array([540.0, 600.0]), velocity= np.array([vx, vy]),cage=2)
-ball2 = Balle(90,(89, 24, 52 ), (0, 0, 0), note_sounds, image_path='images/bordeaux.png', position=np.array([580.0, 600.0]),velocity= np.array([-vx, vy]),cage=1)
-#ball3 = Balle(60,( 163, 167, 162 ), (0, 0, 0), note_sounds, image_path='images/mercedes.png', position=np.array([520.0, 600.0]),velocity= np.array([-vx, vy]),cage=3)
-#ball4 = Balle(60,( 255, 154, 0), (0, 0, 0), note_sounds, image_path='images/maclaren.png', position=np.array([480.0, 600.0]),velocity= np.array([-vx, vy]),cage=4)
+# ball1 = Balle(90,(205, 1, 23), (0, 0, 0), note_sounds, image_path='images/toulouse.png', position =np.array([540.0, 600.0]), velocity= np.array([vx, vy]),cage=2)
+# ball2 = Balle(90,(89, 24, 52 ), (0, 0, 0), note_sounds, image_path='images/bordeaux.png', position=np.array([580.0, 600.0]),velocity= np.array([-vx, vy]),cage=1)
+# #ball3 = Balle(60,( 163, 167, 162 ), (0, 0, 0), note_sounds, image_path='images/mercedes.png', position=np.array([520.0, 600.0]),velocity= np.array([-vx, vy]),cage=3)
+# #ball4 = Balle(60,( 255, 154, 0), (0, 0, 0), note_sounds, image_path='images/maclaren.png', position=np.array([480.0, 600.0]),velocity= np.array([-vx, vy]),cage=4)
 
-ball0 = Balle(20,( 0,0,0 ), (0, 0, 0), note_sounds, image_path='images/rugby.png', position=np.array([560.0, 600.0]),velocity= np.array([vx, vy]),cage=0)
-ball0.gravity_enabled = False  
+# ball0 = Balle(20,( 0,0,0 ), (0, 0, 0), note_sounds, image_path='images/rugby.png', position=np.array([560.0, 600.0]),velocity= np.array([vx, vy]),cage=0)
+# ball0.gravity_enabled = False  
 
 
 
-balles = [ball1, ball2, ball0  ]
+# balles = [ball1, ball2, ball0  ]
 
 # Avant la boucle principale
 logo1 = logo2 = None
@@ -84,8 +90,21 @@ if os.path.exists("images/barca.png") and os.path.exists("images/rm.png"):
 #---------------------cercles init-------------------
 
 cercles = []
+balles_before = balles_custom or []
+balles = []
+for b in balles_before:
+    ball_obj = createBall(
+        radius=b.get("radius"),
+        color=b.get("colorBord"),
+        colorIn=b.get("colorIn"),
+        image_path=b.get("logo"),
+        # ajoute d'autres champs si tu les ajoutes plus tard
+    )
 
-cercles = chooseStyleGame(screen, theme = "cageCercle", min_radius=80, spacing=15, color= (255,0,0))
+    balles.append(ball_obj)
+    #print(f"object balle classe : {ball_obj.__dict__}")
+
+cercles = chooseStyleGame(screen, theme = cercleTheme, min_radius=380, spacing=15, color= (255,0,0), balles = balles)
 
 
 
@@ -103,7 +122,7 @@ nbBalles = 1  # une balle au départ
 rotate = "none"  #rotateCercles
 collision = True 
 
-background_image = pygame.image.load("images/terrain3.jpg").convert()
+background_image = pygame.image.load(background).convert()
 background_image = pygame.transform.scale(background_image, (screen.get_width(), screen.get_height()))
 
 # capture_image = pygame.image.load("images/losetime.png").convert_alpha()
@@ -162,7 +181,7 @@ while running:
     frame_count=0
     screen.blit(background_image, (0, 0))
 
-    chooseMode(screen, mode = "double", countdown_duration=60, balles = balles, visu = None, logo1=logo1, logo2=logo2)
+    chooseMode(screen, mode = "simple", countdown_duration=60, balles = balles, visu = "clean", logo1=logo1, logo2=logo2)
 
     if mode == "infini":
         shadow = font.render(f"{current_start_index}", True, (255,255,255))
@@ -196,7 +215,7 @@ while running:
         b.update()
 
 
-    interaction (screen,theme = "cageCercle",mode = "simple", cercles=cercles, balles= balles )
+    interaction (screen,theme = modeJeu,mode = "simple", cercles=cercles, balles= balles )
         
 
     if theme == "infini":
