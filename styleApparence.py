@@ -24,7 +24,7 @@ def chooseMode(screen, mode, countdown_duration, spacing=300, y_position=300, ba
 
         #     screen.blit(capture_image, (circle_image_x, circle_image_y))
 
-        text = "Full pink​ edit​\n​ "
+        text = "In progress​\n​ "
         lines = text.split('\n')
         
 
@@ -48,8 +48,7 @@ def chooseMode(screen, mode, countdown_duration, spacing=300, y_position=300, ba
             total_height + padding
         )
 
-        # Dessine le fond blanc
-        pygame.draw.rect(screen, (255, 113, 255), bg_rect, border_radius=15)
+        pygame.draw.rect(screen, (167, 13, 244), bg_rect, border_radius=15)
 
         # Affiche les lignes par-dessus
         for i, rendered in enumerate(rendered_lines):

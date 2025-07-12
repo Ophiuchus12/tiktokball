@@ -23,9 +23,11 @@ with open("config.json", "r") as f:
     config = json.load(f)
 
 cercleTheme = config.get("cerclesTheme")
+colorCercle = config.get("cerclesColor", (255, 0, 0))
 modeJeu = config.get("modeJeu")
 background = config.get("background", "images/etoile.jpeg")
 balles_custom = config.get("balles_custom", [])
+min_radius = config.get("min_radius", 150)
 
 screen = pygame.display.set_mode((1080, 1920), pygame.FULLSCREEN | pygame.SCALED | pygame.DOUBLEBUF)
 hidden_image = pygame.image.load("images/logo.png").convert()
@@ -104,7 +106,7 @@ for b in balles_before:
     balles.append(ball_obj)
     #print(f"object balle classe : {ball_obj.__dict__}")
 
-cercles = chooseStyleGame(screen, theme = cercleTheme, min_radius=380, spacing=15, color= (255,0,0), balles = balles)
+cercles = chooseStyleGame(screen, theme = cercleTheme, min_radius=min_radius, spacing=15, color= colorCercle, balles = balles)
 
 
 

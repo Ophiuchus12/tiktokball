@@ -35,7 +35,7 @@ def generate_circle_colors(n):
 
 note_sounds = load_note_sounds()
 
-def chooseStyleGame(screen, theme, min_radius=80 ,spacing=15, color = (255,255,255), balles = []):
+def chooseStyleGame(screen, theme, min_radius=10 ,spacing=15, color = (255,255,255), balles = []):
 
     cercles = []
 
@@ -45,9 +45,9 @@ def chooseStyleGame(screen, theme, min_radius=80 ,spacing=15, color = (255,255,2
                 radius = min_radius + i * spacing
                 if 2 * radius < min(screen.get_width(), screen.get_height()):
                     start_deg = (i * 5) % 360  # Décalage progressif
-                    end_deg = (start_deg + 30) % 360
-                    cercles.append(Cercle(radius, start_deg, end_deg, color=( 160, 64, 0 )))
-                    
+                    end_deg = (start_deg + 20) % 360
+                    cercles.append(Cercle(radius, start_deg, end_deg, color=color))
+
 
         case "multicolor":
             colors = generate_circle_colors(60)

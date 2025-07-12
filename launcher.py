@@ -49,7 +49,7 @@ def on_theme_change(event):
 def ouvrir_modal_balle(parent):
     modal = tk.Toplevel(parent)
     modal.title("Configurer une balle")
-    modal.geometry("300x300")
+    modal.geometry("300x500")
     modal.grab_set()
 
     ttk.Label(modal, text="Rayon :").pack()
@@ -109,6 +109,7 @@ def lancer_jeu():
         "cerclesColor": cercles_color,
         "timer": int(timer_entry.get()),
         "modeJeu": modeJeu_combo.get(),
+        "min_radius": int(min_radius_entry.get()),
         "balles_custom": balle_params_list  # Liste des balles ajoutées
     }
     
@@ -151,6 +152,27 @@ timer_entry.pack()
 ttk.Label(fenetre, text="Mode de jeu :").pack(pady=10)
 modeJeu_combo = ttk.Combobox(fenetre, values=["classique", "simpleCercleferme", "rebondInfini", "simpleCercle", "cageCercle", "tripleCercle"], state="readonly")
 modeJeu_combo.pack()
+
+# Frame pour min_radius (initialement masquée)
+min_radius_frame = ttk.Frame(fenetre)
+min_radius_label = ttk.Label(min_radius_frame, text="min radius :")
+min_radius_entry = ttk.Entry(min_radius_frame)
+
+
+min_radius_label.pack(side="left")
+min_radius_entry.pack(side="left")
+
+
+def on_mode_jeu_change(event=None):
+    if modeJeu_combo.get() == "classique":
+        min_radius_frame.pack(after=modeJeu_combo)
+        min_radius_frame.pack(pady=5)
+
+    else:
+        min_radius_frame.pack_forget()
+
+
+modeJeu_combo.bind("<<ComboboxSelected>>", on_mode_jeu_change)
 
 #create Ball
 ajouter_balle_btn = ttk.Button(fenetre, text="Ajouter une balle personnalisée", command=lambda: ouvrir_modal_balle(fenetre))
