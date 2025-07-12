@@ -7,6 +7,8 @@ from ttkbootstrap.constants import *
 import ast
 
 balle_params_list = []
+balleOptionAvanced = {}
+
 
 
 def choisir_couleur(entry):
@@ -92,6 +94,39 @@ def ouvrir_modal_balle(parent):
         modal.destroy()
 
 
+def ouvrir_modal_balle_optionavanced(parent):
+    modalOption = tk.Toplevel(parent)
+    modalOption.title("Configurer options avancées des balles")
+    modalOption.geometry("300x500")
+    modalOption.grab_set()
+
+    ttk.Label(modalOption, text="mode :").pack()
+    mode_choice = ttk.Combobox(modalOption, values=["invisible", "trainee", "trace"], state="readonly")
+    mode_choice.pack()
+
+
+    ttk.Label(modalOption, text="onBounce :").pack()
+    onBounce_choice = ttk.Combobox(modalOption, values=["linked"], state="readonly")
+    onBounce_choice.pack()
+
+    
+    ttk.Button(modalOption, text="Ajouter", command=lambda: validerOption()).pack(pady=10)
+
+    def validerOption():
+        global balleOptionAvanced
+        balleOptionAvanced = {
+            "mode": mode_choice.get(),
+            "onBounce": onBounce_choice.get(),
+        }
+
+        # Affichage dans la liste
+        info_option_balle = f"Options Balle - Mode {balleOptionAvanced['mode']} - onBounce {balleOptionAvanced['onBounce']}"
+        liste_balles.insert(tk.END, info_option_balle)
+
+        modalOption.grab_release()
+        modalOption.destroy()
+
+
 def lancer_jeu():
     if cerclesTheme.get() != "triple" and len(balle_params_list) == 0:
         tk.messagebox.showwarning("Avertissement", "Veuillez ajouter au moins une balle.")
@@ -110,7 +145,8 @@ def lancer_jeu():
         "timer": int(timer_entry.get()),
         "modeJeu": modeJeu_combo.get(),
         "min_radius": int(min_radius_entry.get()),
-        "balles_custom": balle_params_list  # Liste des balles ajoutées
+        "balles_custom": balle_params_list,  # Liste des balles ajoutées
+        "balleOptionsAvanced": balleOptionAvanced
     }
     
     with open("config.json", "w") as f:
@@ -180,6 +216,8 @@ ajouter_balle_btn.pack(pady=10)
 
 #Liste des balles add
 ttk.Label(fenetre, text="Balles ajoutées :").pack()
+adder_balle_btn = ttk.Button(fenetre, text="Options Avancées des balles", command=lambda: ouvrir_modal_balle_optionavanced(fenetre))
+adder_balle_btn.pack(pady=5)
 liste_balles = tk.Listbox(fenetre, height=5)
 liste_balles.pack(fill="x", padx=10, pady=5)
 

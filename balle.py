@@ -5,9 +5,16 @@ import os
 import colorsys
 from concurrent.futures import ThreadPoolExecutor
 import math
+import json
 
 from note_sounds import load_note_sounds
 
+with open ("config.json", "r") as f:
+    config = json.load(f)
+
+configAvanced = config.get("balleOptionsAvanced", {})
+mode = configAvanced.get("mode", "none")
+onBounce = configAvanced.get("onBounce", "none")
 
 pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()
@@ -25,8 +32,8 @@ def rotate_point_around_center(point, center, angle_rad):
     return rotated + center
 
 
-mode = "none"  # Modes possibles : "invisible", "trainee", "trace"
-onBounce = "none" #linked , #none
+mode = mode  # Modes possibles : "invisible", "trainee", "trace"
+onBounce = onBounce #linked , #none
 look = "none"
 
 class Balle:
