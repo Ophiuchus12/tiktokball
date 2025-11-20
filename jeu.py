@@ -217,7 +217,7 @@ while running:
         b.update()
 
 
-    interaction (screen,theme = modeJeu,mode = "simple", cercles=cercles, balles= balles )
+    interaction (screen,theme = modeJeu,mode = "classique", cercles=cercles, balles= balles )
         
 
     if theme == "infini":

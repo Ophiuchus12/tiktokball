@@ -24,7 +24,7 @@ def chooseMode(screen, mode, countdown_duration, spacing=300, y_position=300, ba
 
         #     screen.blit(capture_image, (circle_image_x, circle_image_y))
 
-        text = "In progress​\n​ "
+        text = "Cool tiktok ball game​\n​ "
         lines = text.split('\n')
         
 
@@ -33,7 +33,7 @@ def chooseMode(screen, mode, countdown_duration, spacing=300, y_position=300, ba
         rendered_lines = []
 
         for i, line in enumerate(lines):
-            rendered = font.render(line, True, (255, 255, 255))
+            rendered = font.render(line, True, (0, 0, 0))
             rendered_lines.append(rendered)
             rect = rendered.get_rect()
             max_width = max(max_width, rect.width)
@@ -48,7 +48,7 @@ def chooseMode(screen, mode, countdown_duration, spacing=300, y_position=300, ba
             total_height + padding
         )
 
-        pygame.draw.rect(screen, (167, 13, 244), bg_rect, border_radius=15)
+        pygame.draw.rect(screen, (255, 0, 0), bg_rect, border_radius=15)
 
         # Affiche les lignes par-dessus
         for i, rendered in enumerate(rendered_lines):
