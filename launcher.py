@@ -139,7 +139,7 @@ def lancer_jeu():
         return
 
     config = {
-        "background": bg_entry.get() or "images/etoile.jpeg",
+        "background": bg_entry.get() or "images/noir.jpg",
         "cerclesTheme": cerclesTheme.get(),
         "cerclesColor": cercles_color,
         "timer": int(timer_entry.get()),

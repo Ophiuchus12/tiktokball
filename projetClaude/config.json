@@ -1,0 +1,46 @@
+{
+  "background": "/home/corentin/Projects/tiktokBall/images/noir.jpg",
+  "cerclesTheme": "simpleCercleferme",
+  "cerclesColor": [
+    255,
+    255,
+    255
+  ],
+  "timer": 60,
+  "modeJeu": "simpleCercleferme",
+  "min_radius": 200,
+  "balles_custom": [
+    {
+      "radius": 20,
+      "colorIn": [
+        255,
+        255,
+        115
+      ],
+      "colorBord": [
+        255,
+        255,
+        115
+      ],
+      "logo": null
+    },
+    {
+      "radius": 20,
+      "colorIn": [
+        38,
+        65,
+        255
+      ],
+      "colorBord": [
+        255,
+        65,
+        255
+      ],
+      "logo": null
+    }
+  ],
+  "balleOptionsAvanced": {
+    "mode": "trainee",
+    "onBounce": "none"
+  }
+}

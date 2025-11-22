@@ -25,7 +25,7 @@ with open("config.json", "r") as f:
 cercleTheme = config.get("cerclesTheme")
 colorCercle = config.get("cerclesColor", (255, 0, 0))
 modeJeu = config.get("modeJeu")
-background = config.get("background", "images/etoile.jpeg")
+background = config.get("background", "images/noir.jpg")
 balles_custom = config.get("balles_custom", [])
 min_radius = config.get("min_radius", 150)
 

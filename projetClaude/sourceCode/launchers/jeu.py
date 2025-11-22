@@ -1,0 +1,261 @@
+"""
+Main game file.
+Handles game loop, initialization, and rendering.
+"""
+
+import sys
+from pathlib import Path
+
+# Ajoute sourceCode/ au PYTHONPATH
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
+
+
+import pygame
+import math
+import numpy as np
+import random
+import os
+
+from entite.balle import Balle
+from entite.cercle import Cercle
+from logique.common import createBall, handleBallCollision
+from logique.interaction import interaction
+from apparence.styleApparence import chooseMode, get_timer
+from apparence.styleCercles import chooseStyleGame
+
+from config.config_manager import get_config
+from config.constants import (
+    SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_CENTER,
+    FPS, HIDDEN_IMAGE_PATH, HIDDEN_IMAGE_SIZE,
+    LOGO_SIZE, FONT_PATH, DEFAULT_FONT_SIZE
+)
+
+# Initialize pygame
+pygame.mixer.pre_init(44100, -16, 2, 512)
+pygame.init()
+pygame.mixer.set_num_channels(32)
+
+
+# Load configuration
+config = get_config()
+
+cercleTheme = config.get_circle_theme()
+colorCercle = config.get_circle_color()
+modeJeu = config.get_game_mode()
+background = config.get("background", "images/noir.jpg")
+balles_custom = config.get_custom_balls()
+min_radius = config.get("min_radius", 150)
+timer_duration = config.get("timer", 60)
+
+# Create screen
+screen = pygame.display.set_mode(
+    (SCREEN_WIDTH, SCREEN_HEIGHT), 
+    pygame.FULLSCREEN | pygame.SCALED | pygame.DOUBLEBUF
+)
+
+# Load hidden image for invisible mode
+hidden_image = None
+image_rect = None
+if os.path.exists(HIDDEN_IMAGE_PATH):
+    hidden_image = pygame.image.load(HIDDEN_IMAGE_PATH).convert()
+    hidden_image = pygame.transform.scale(hidden_image, HIDDEN_IMAGE_SIZE)
+    image_rect = hidden_image.get_rect(
+        center=(screen.get_width() // 2, screen.get_height() // 2)
+    )
+
+pygame.display.set_caption("Multi Cercle Escape")
+pygame.font.init()
+font = pygame.font.Font(FONT_PATH, DEFAULT_FONT_SIZE)
+
+clock = pygame.time.Clock()
+
+# Load logos if they exist
+logo1 = logo2 = logo3 = logo4 = None
+logo_paths = [
+    ("images/toulouse.png", "logo1"),
+    ("images/bordeaux.png", "logo2"),
+    ("images/mercedes.png", "logo3"),
+    ("images/maclaren.png", "logo4")
+]
+
+for path, var_name in logo_paths:
+    if os.path.exists(path):
+        logo = pygame.image.load(path).convert_alpha()
+        logo = pygame.transform.scale(logo, LOGO_SIZE)
+        if var_name == "logo1":
+            logo1 = logo
+        elif var_name == "logo2":
+            logo2 = logo
+        elif var_name == "logo3":
+            logo3 = logo
+        elif var_name == "logo4":
+            logo4 = logo
+
+# Initialize balls from config
+balles = []
+for b in balles_custom:
+    ball_obj = createBall(
+        radius=b.get("radius", 20),
+        color=b.get("colorBord", (255, 255, 255)),
+        colorIn=b.get("colorIn", (255, 255, 255)),
+        image_path=b.get("logo"),
+        hidden_image=hidden_image,
+        image_rect=image_rect
+    )
+    balles.append(ball_obj)
+
+# Initialize circles based on theme
+cercles = chooseStyleGame(
+    screen, 
+    theme=cercleTheme, 
+    min_radius=min_radius, 
+    spacing=15, 
+    color=colorCercle, 
+    balles=balles
+)
+
+# ⭐ FIX: Forcer couleur visible
+print(f"🔍 {len(cercles)} cercles créés - forçage en BLANC")
+# Draw circles - TEST
+# Draw circles
+for c in cercles:
+    c.draw(screen)
+    
+# Game variables
+running = True
+mode = "simple"  # Sub-mode for interaction
+visu = "clean"  # Visualization mode
+collision = True  # Enable ball-ball collision
+
+# Load background
+background_image = None
+if os.path.exists(background):
+    background_image = pygame.image.load(background).convert()
+    background_image = pygame.transform.scale(
+        background_image, 
+        (screen.get_width(), screen.get_height())
+    )
+
+
+def rotate_cercles_orbital(cercles, center_x, center_y, rotation_speed, rotation_direction):
+    """
+    Rotate circle centers around screen center while keeping openings toward center.
+    
+    Args:
+        cercles: List of circles
+        center_x, center_y: Center point coordinates
+        rotation_speed: Speed of rotation
+        rotation_direction: Direction (1 or -1)
+    """
+    angle = rotation_speed * rotation_direction
+    cos_a = math.cos(angle)
+    sin_a = math.sin(angle)
+    
+    for i, cercle in enumerate(cercles):
+        # 1. Rotate circle CENTER position around screen center
+        dx = cercle.x - center_x
+        dy = cercle.y - center_y
+        
+        new_dx = dx * cos_a - dy * sin_a
+        new_dy = dx * sin_a + dy * cos_a
+        
+        cercle.x = center_x + new_dx
+        cercle.y = center_y + new_dy
+        
+        # 2. Recalculate angle toward center for this new position
+        angle_vers_centre = math.atan2(center_y - cercle.y, center_x - cercle.x)
+        
+        # 3. Apply specific adjustments
+        if i == 1:
+            angle_vers_centre += math.pi / 1.5
+        if i == 2:
+            angle_vers_centre -= math.pi / 1.5
+        
+        # 4. Recalculate opening angles
+        arc_span = math.radians(40)
+        start_deg = math.degrees(angle_vers_centre - arc_span / 2)
+        end_deg = math.degrees(angle_vers_centre + arc_span / 2)
+        
+        # 5. Update circle angles (in radians)
+        cercle.start_angle = math.radians(start_deg)
+        cercle.end_angle = math.radians(end_deg)
+
+
+# Initialize timer
+game_timer = get_timer()
+game_timer.start()
+
+# Main game loop
+frame_count = 0
+while running:
+    # Draw background
+    if background_image:
+        screen.blit(background_image, (0, 0))
+    else:
+        screen.fill((0, 0, 0))
+
+    # Render UI
+    chooseMode(
+        screen, 
+        mode=mode, 
+        countdown_duration=timer_duration, 
+        balles=balles, 
+        visu=visu, 
+        logo1=logo1, 
+        logo2=logo2,
+        logo3=logo3,
+        logo4=logo4
+    )
+
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+
+    # Update circles
+    if modeJeu != "tripleCercle":
+        for c in cercles:
+            c.update_angles()
+    elif modeJeu == "tripleCercle":
+        # Orbital rotation for triple circle mode
+        center_x, center_y = screen.get_width() // 2, screen.get_height() // 2
+        rotate_cercles_orbital(cercles, center_x, center_y, 0.01, -1)
+
+    # Remove dead circles
+    cercles = [c for c in cercles if c.update_mort()]
+
+    # Update balls
+    for b in balles:
+        b.update()
+
+    # Handle game interactions
+    interaction(screen, theme=modeJeu, mode=mode, cercles=cercles, balles=balles)
+
+    # Handle ball-ball collisions if enabled
+    if collision:
+        handleBallCollision(balles)
+
+    # Draw circles
+    for c in cercles:
+        c.draw(screen)
+
+    # Draw balls
+    for b in balles:
+        b.draw(screen)
+    # Update display
+    
+    pygame.display.update()
+    clock.tick(FPS)
+    frame_count += 1
+
+    # # Check if timer expired
+    # if game_timer.get_elapsed() >= timer_duration:
+    #     print("Time's up!")
+    #     # Could add game over screen here
+    #     # running = False
+
+pygame.quit()
